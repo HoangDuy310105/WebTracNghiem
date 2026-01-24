@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Thi Trắc Nghiệm Trực Tuyến</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation - Glass Morphism Style -->
+    <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-graduation-cap me-2"></i>
+                <span class="gradient-text">ExamPro</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="index.html">Trang chủ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="#features">Tính năng</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link px-3" href="#how-it-works">Hướng dẫn</a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-light btn-sm rounded-pill px-4" href="pages/login.html">
+                            <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
+                        </a>
+                    </li>
+                    <li class="nav-item ms-2">
+                        <a class="btn btn-light btn-sm rounded-pill px-4 text-primary fw-bold" href="pages/register.html">
+                            <i class="fas fa-user-plus me-1"></i> Đăng ký
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section position-relative overflow-hidden">
+        <!-- Animated Background -->
+        <div class="hero-bg-animated"></div>
+        
+        <!-- Content -->
+        <div class="container position-relative" style="z-index: 10;">
+            <div class="row align-items-center" style="padding: 20px 0;">
+                <div class="col-lg-6">
+                    <div class="hero-content">
+                        <h1 class="display-4 fw-bold mb-4 text-white hero-title">
+                            Hệ Thống Thi Trắc Nghiệm
+                            <span class="gradient-text-hero d-block">Trực Tuyến</span>
+                        </h1>
+                        <p class="lead mb-4 text-white-50 fs-5">
+                            Nền tảng thi trực tuyến hiện đại, giúp giáo viên tạo đề thi thông minh và học sinh tham gia thi một cách dễ dàng
+                        </p>
+                        <div class="d-flex flex-wrap gap-3">
+                            <a href="pages/register.html" class="btn btn-light btn-lg px-5 rounded-pill shadow-lg hover-lift">
+                                <i class="fas fa-rocket me-2"></i> Bắt đầu ngay
+                            </a>
+                            <a href="pages/login.html" class="btn btn-outline-light btn-lg px-5 rounded-pill hover-lift">
+                                <i class="fas fa-sign-in-alt me-2"></i> Xem demo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Side - Hero Image -->
+                <div class="col-lg-6 d-none d-lg-block">
+                    <div class="hero-image-container">
+                        <!-- Hero Illustration -->
+                        <div class="hero-illustration">
+                            <div class="hero-shape shape-1"></div>
+                            <div class="hero-shape shape-2"></div>
+                            <div class="hero-shape shape-3"></div>
+                            <div class="hero-icon-grid">
+                                <div class="hero-icon"><i class="fas fa-graduation-cap"></i></div>
+                                <div class="hero-icon"><i class="fas fa-book"></i></div>
+                                <div class="hero-icon"><i class="fas fa-trophy"></i></div>
+                                <div class="hero-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="hero-icon"><i class="fas fa-users"></i></div>
+                                <div class="hero-icon"><i class="fas fa-star"></i></div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container py-5">
+            <div class="text-center mb-5" data-aos="fade-up">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">
+                    <i class="fas fa-star me-2"></i>Tính năng
+                </span>
+                <h2 class="display-5 fw-bold mb-3">Giải Pháp Toàn Diện</h2>
+                <p class="lead text-muted">Đáp ứng mọi nhu cầu của học sinh, giáo viên và quản trị viên</p>
+            </div>
+            <div class="row g-4">
+                <!-- Student Features -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+                    <div class="modern-feature-card">
+                        <div class="feature-card-header bg-gradient-blue">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <h4 class="text-white mb-0">Dành cho Học Sinh</h4>
+                        </div>
+                        <div class="feature-card-body">
+                            <ul class="feature-list">
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Tham gia thi với mã phòng</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Làm bài với đồng hồ đếm ngược</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Xem kết quả chi tiết</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Theo dõi tiến độ học tập</span>
+                                </li>
+                            </ul>
+                            <a href="pages/register.html" class="btn btn-primary w-100 rounded-pill mt-3">
+                                Bắt đầu <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teacher Features -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+                    <div class="modern-feature-card">
+                        <div class="feature-card-header bg-gradient-green">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h4 class="text-white mb-0">Dành cho Giáo Viên</h4>
+                        </div>
+                        <div class="feature-card-body">
+                            <ul class="feature-list">
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Tạo đề thi trắc nghiệm</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Tạo phòng thi với mã code</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Quản lý thời gian thi</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Xem kết quả học sinh</span>
+                                </li>
+                            </ul>
+                            <a href="pages/register.html" class="btn btn-success w-100 rounded-pill mt-3">
+                                Tạo đề thi <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Features -->
+                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+                    <div class="modern-feature-card">
+                        <div class="feature-card-header bg-gradient-red">
+                            <div class="feature-card-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <h4 class="text-white mb-0">Dành cho Admin</h4>
+                        </div>
+                        <div class="feature-card-body">
+                            <ul class="feature-list">
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Quản lý người dùng</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Quản lý đề thi</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Thống kê tổng quan</span>
+                                </li>
+                                <li>
+                                    <i class="fas fa-check"></i>
+                                    <span>Giám sát hệ thống</span>
+                                </li>
+                            </ul>
+                            <a href="pages/register.html" class="btn btn-danger w-100 rounded-pill mt-3">
+                                Quản trị <i class="fas fa-arrow-right ms-2"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="py-5 bg-light">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">
+                    <i class="fas fa-lightbulb me-2"></i>Hướng dẫn
+                </span>
+                <h2 class="display-5 fw-bold mb-3">Cách Sử Dụng</h2>
+                <p class="lead text-muted">Đơn giản chỉ với 3 bước</p>
+            </div>
+            
+            <!-- Timeline Style -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="timeline-container">
+                        <!-- Step 1 -->
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-primary">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-badge">Bước 1</div>
+                                <h4 class="fw-bold mb-2">Đăng ký tài khoản</h4>
+                                <p class="text-muted mb-0">Chọn vai trò của bạn (Học sinh hoặc Giáo viên) và tạo tài khoản miễn phí</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2 -->
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-success">
+                                <i class="fas fa-edit"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-badge">Bước 2</div>
+                                <h4 class="fw-bold mb-2">Tạo hoặc Tham gia</h4>
+                                <p class="text-muted mb-0">Giáo viên tạo đề thi với mã phòng, Học sinh nhập mã để tham gia</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3 -->
+                        <div class="timeline-item">
+                            <div class="timeline-icon bg-warning">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="timeline-badge">Bước 3</div>
+                                <h4 class="fw-bold mb-2">Làm bài & Xem kết quả</h4>
+                                <p class="text-muted mb-0">Làm bài thi với đồng hồ đếm ngược và xem kết quả chi tiết ngay lập tức</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-graduation-cap"></i> ExamPro</h5>
+                    <p class="text-white-50 mb-0">© 2026 Online Exam System. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook fa-lg"></i></a>
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                    <a href="#" class="text-white-50"><i class="fab fa-github fa-lg"></i></a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+@echo off
+echo Starting ExamPro Server...
+npm run dev

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="dashboard-sidebar" style="width: 250px;">
+            <div class="text-center text-white py-3">
+                <i class="fas fa-user-shield fa-2x mb-2"></i>
+                <h5>Admin Panel</h5>
+                <p class="small mb-0" id="userName">Administrator</p>
+            </div>
+            <hr class="text-white">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-page="dashboard">
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="users">
+                        <i class="fas fa-users"></i> Quản lý người dùng
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="exams">
+                        <i class="fas fa-file-alt"></i> Quản lý đề thi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="stats">
+                        <i class="fas fa-chart-bar"></i> Thống kê
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link text-danger" href="#" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-fill">
+            <!-- Header -->
+            <header class="bg-white shadow-sm py-3 px-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Admin Dashboard</h4>
+                    <div>
+                        <span class="badge bg-danger me-2">
+                            <i class="fas fa-clock"></i> <span id="currentTime"></span>
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="p-4">
+                <!-- Dashboard Overview -->
+                <div id="dashboardContent">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card stat-card primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Tổng người dùng</p>
+                                            <h3 class="mb-0" id="totalUsers">0</h3>
+                                        </div>
+                                        <div class="text-primary">
+                                            <i class="fas fa-users fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Học sinh</p>
+                                            <h3 class="mb-0" id="totalStudents">0</h3>
+                                        </div>
+                                        <div class="text-success">
+                                            <i class="fas fa-user-graduate fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Giáo viên</p>
+                                            <h3 class="mb-0" id="totalTeachers">0</h3>
+                                        </div>
+                                        <div class="text-warning">
+                                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card danger">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Đề thi</p>
+                                            <h3 class="mb-0" id="totalExams">0</h3>
+                                        </div>
+                                        <div class="text-danger">
+                                            <i class="fas fa-file-alt fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts & Recent Activity -->
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Hoạt động gần đây</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Học sinh</th>
+                                                    <th>Bài thi</th>
+                                                    <th>Điểm</th>
+                                                    <th>Thời gian</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="recentActivity">
+                                                <tr>
+                                                    <td colspan="4" class="text-center text-muted">
+                                                        Đang tải dữ liệu...
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card shadow-sm">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin hệ thống</h5>
+                                </div>
+                                <div class="card-body">
+                                    <ul class="list-unstyled">
+                                        <li class="mb-3">
+                                            <i class="fas fa-server text-primary"></i>
+                                            <strong>Server Status:</strong>
+                                            <span class="badge bg-success ms-2">Online</span>
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-database text-info"></i>
+                                            <strong>Database:</strong>
+                                            <span class="badge bg-success ms-2">Connected</span>
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-clock text-warning"></i>
+                                            <strong>Uptime:</strong>
+                                            <span class="ms-2" id="uptime">0 days</span>
+                                        </li>
+                                        <li class="mb-3">
+                                            <i class="fas fa-chart-pie text-danger"></i>
+                                            <strong>Phòng thi đang chạy:</strong>
+                                            <span class="ms-2" id="activeRooms">0</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Management Content (hidden by default) -->
+                <div id="usersContent" class="d-none"></div>
+
+                <!-- Exams Management Content (hidden by default) -->
+                <div id="examsContent" class="d-none"></div>
+
+                <!-- Stats Content (hidden by default) -->
+                <div id="statsContent" class="d-none"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="spinner-border text-light spinner-border-lg" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../../js/admin.js"></script>
+</body>
+</html>

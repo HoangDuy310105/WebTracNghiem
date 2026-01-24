@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Giáo Viên</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="dashboard-sidebar" style="width: 250px;">
+            <div class="text-center text-white py-3">
+                <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i>
+                <h5>Giáo Viên</h5>
+                <p class="small mb-0" id="userName">Xin chào!</p>
+            </div>
+            <hr class="text-white">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link active" href="#" data-page="dashboard">
+                        <i class="fas fa-th-large"></i> Trang chủ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="my-exams">
+                        <i class="fas fa-file-alt"></i> Đề thi của tôi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="create-exam">
+                        <i class="fas fa-plus-circle"></i> Tạo đề thi mới
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="my-rooms">
+                        <i class="fas fa-door-open"></i> Phòng thi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="create-room">
+                        <i class="fas fa-plus-square"></i> Tạo phòng thi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" data-page="profile">
+                        <i class="fas fa-user"></i> Thông tin cá nhân
+                    </a>
+                </li>
+                <li class="nav-item mt-auto">
+                    <a class="nav-link text-danger" href="#" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <div class="flex-fill">
+            <!-- Header -->
+            <header class="bg-white shadow-sm py-3 px-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0">Dashboard Giáo Viên</h4>
+                    <div>
+                        <span class="badge bg-success me-2">
+                            <i class="fas fa-clock"></i> <span id="currentTime"></span>
+                        </span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <main class="p-4">
+                <!-- Dashboard Overview -->
+                <div id="dashboardContent">
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-3">
+                            <div class="card stat-card primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Đề thi</p>
+                                            <h3 class="mb-0" id="totalExams">0</h3>
+                                        </div>
+                                        <div class="text-primary">
+                                            <i class="fas fa-file-alt fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card success">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Phòng thi</p>
+                                            <h3 class="mb-0" id="totalRooms">0</h3>
+                                        </div>
+                                        <div class="text-success">
+                                            <i class="fas fa-door-open fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Học sinh</p>
+                                            <h3 class="mb-0" id="totalStudents">0</h3>
+                                        </div>
+                                        <div class="text-warning">
+                                            <i class="fas fa-users fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card danger">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between">
+                                        <div>
+                                            <p class="text-muted mb-1">Bài đã nộp</p>
+                                            <h3 class="mb-0" id="totalSubmissions">0</h3>
+                                        </div>
+                                        <div class="text-danger">
+                                            <i class="fas fa-check-circle fa-2x"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="card shadow-sm hover-card h-100">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                                    <h5>Tạo Đề Thi Mới</h5>
+                                    <p class="text-muted">Thêm câu hỏi và đáp án cho đề thi mới</p>
+                                    <button class="btn btn-primary" data-page="create-exam">
+                                        <i class="fas fa-arrow-right"></i> Bắt đầu tạo
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card shadow-sm hover-card h-100">
+                                <div class="card-body text-center py-4">
+                                    <i class="fas fa-door-open fa-3x text-success mb-3"></i>
+                                    <h5>Tạo Phòng Thi</h5>
+                                    <p class="text-muted">Mở phòng thi và phát mã cho học sinh</p>
+                                    <button class="btn btn-success" data-page="create-room">
+                                        <i class="fas fa-arrow-right"></i> Tạo phòng
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Exams -->
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-white">
+                            <h5 class="mb-0"><i class="fas fa-file-alt"></i> Đề thi gần đây</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên đề thi</th>
+                                            <th>Số câu</th>
+                                            <th>Thời gian</th>
+                                            <th>Ngày tạo</th>
+                                            <th>Hành động</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentExamsTable">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                Chưa có đề thi nào
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Other content sections (hidden by default) -->
+                <div id="myExamsContent" class="d-none"></div>
+                <div id="createExamContent" class="d-none"></div>
+                <div id="myRoomsContent" class="d-none"></div>
+                <div id="createRoomContent" class="d-none"></div>
+                <div id="profileContent" class="d-none"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay d-none">
+        <div class="spinner-border text-light spinner-border-lg" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="../js/teacher.js"></script>
+</body>
+</html>
