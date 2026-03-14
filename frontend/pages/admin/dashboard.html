@@ -1,217 +1,380 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Admin Dashboard - ExamPro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/dark-theme.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <nav class="dashboard-sidebar" style="width: 250px;">
-            <div class="text-center text-white py-3">
-                <i class="fas fa-user-shield fa-2x mb-2"></i>
-                <h5>Admin Panel</h5>
-                <p class="small mb-0" id="userName">Administrator</p>
-            </div>
-            <hr class="text-white">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" data-page="dashboard">
-                        <i class="fas fa-th-large"></i> Dashboard
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="users">
-                        <i class="fas fa-users"></i> Quản lý người dùng
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="exams">
-                        <i class="fas fa-file-alt"></i> Quản lý đề thi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="stats">
-                        <i class="fas fa-chart-bar"></i> Thống kê
-                    </a>
-                </li>
-                <li class="nav-item mt-auto">
-                    <a class="nav-link text-danger" href="#" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                    </a>
-                </li>
-            </ul>
-        </nav>
 
-        <!-- Main Content -->
-        <div class="flex-fill">
-            <!-- Header -->
-            <header class="bg-white shadow-sm py-3 px-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Admin Dashboard</h4>
+<body>
+    <div class="page-bg"></div>
+
+    <!-- Decorative red corner glow for admin -->
+    <div
+        style="position:fixed;top:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(239,68,68,0.12),transparent 70%);pointer-events:none;z-index:0;">
+    </div>
+
+    <div class="dash-wrapper">
+
+        <!-- SIDEBAR (red theme) -->
+        <aside class="dash-sidebar" style="border-right-color:rgba(239,68,68,0.15);">
+            <div class="sidebar-logo-wrap" style="border-bottom-color:rgba(239,68,68,0.15);">
+                <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626);"><i
+                        class="fas fa-shield-alt"></i></div>
+                <div class="sidebar-logo-name">ExamPro <span
+                        style="font-size:0.65rem;color:#fca5a5;font-weight:600;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);padding:1px 6px;border-radius:4px;vertical-align:middle;">ADMIN</span>
+                </div>
+            </div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-row">
+                    <div class="sidebar-avatar" style="background:linear-gradient(135deg,#ef4444,#dc2626);">A</div>
                     <div>
-                        <span class="badge bg-danger me-2">
-                            <i class="fas fa-clock"></i> <span id="currentTime"></span>
-                        </span>
+                        <div class="sidebar-uname" id="sidebarName">Admin</div>
+                        <div class="sidebar-urole"><span class="role-badge admin">Quản trị viên</span></div>
                     </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">Tổng quan</div>
+                <a class="nav-item active" data-page="overview" href="#" style="--active-color:rgba(239,68,68,0.12);"><i
+                        class="fas fa-th-large"></i> Dashboard</a>
+                <a class="nav-item" data-page="stats" href="#"><i class="fas fa-chart-pie"></i> Thống kê</a>
+
+                <div class="sidebar-section">Quản lý</div>
+                <a class="nav-item" data-page="users" href="#"><i class="fas fa-users"></i> Người dùng</a>
+                <a class="nav-item" data-page="exams" href="#"><i class="fas fa-file-alt"></i> Đề thi</a>
+                <a class="nav-item" data-page="rooms" href="#"><i class="fas fa-door-open"></i> Phòng thi</a>
+                <a class="nav-item" data-page="results" href="#"><i class="fas fa-chart-bar"></i> Kết quả</a>
+            </nav>
+            <div class="sidebar-footer">
+                <a class="nav-item logout" href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="dash-main">
+            <header class="dash-header">
+                <h1 class="dash-header-title" id="pageTitle">Dashboard</h1>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+                    <div class="header-clock" id="clock">21:00:00</div>
+                    <span class="badge"
+                        style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);padding:6px 14px;border-radius:20px;font-size:0.72rem;">
+                        <i class="fas fa-shield-alt me-1"></i> Admin Mode
+                    </span>
                 </div>
             </header>
 
-            <!-- Content Area -->
-            <main class="p-4">
-                <!-- Dashboard Overview -->
-                <div id="dashboardContent">
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <div class="card stat-card primary">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Tổng người dùng</p>
-                                            <h3 class="mb-0" id="totalUsers">0</h3>
-                                        </div>
-                                        <div class="text-primary">
-                                            <i class="fas fa-users fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="dash-content">
+
+                <!-- OVERVIEW -->
+                <div id="pg-overview">
+                    <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+                        <div class="stat-card c-primary">
+                            <div class="stat-top">
+                                <div class="stat-icon i-primary"><i class="fas fa-users"></i></div><span
+                                    class="stat-change up">+12%</span>
                             </div>
+                            <div class="stat-value" id="st-users">0</div>
+                            <div class="stat-label">Tổng người dùng</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card success">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Học sinh</p>
-                                            <h3 class="mb-0" id="totalStudents">0</h3>
-                                        </div>
-                                        <div class="text-success">
-                                            <i class="fas fa-user-graduate fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-success">
+                            <div class="stat-top">
+                                <div class="stat-icon i-success"><i class="fas fa-file-alt"></i></div><span
+                                    class="stat-change up">+8%</span>
                             </div>
+                            <div class="stat-value" id="st-exams">0</div>
+                            <div class="stat-label">Tổng đề thi</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card warning">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Giáo viên</p>
-                                            <h3 class="mb-0" id="totalTeachers">0</h3>
-                                        </div>
-                                        <div class="text-warning">
-                                            <i class="fas fa-chalkboard-teacher fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-warning">
+                            <div class="stat-top">
+                                <div class="stat-icon i-warning"><i class="fas fa-door-open"></i></div>
                             </div>
+                            <div class="stat-value" id="st-rooms">0</div>
+                            <div class="stat-label">Phòng thi</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card danger">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Đề thi</p>
-                                            <h3 class="mb-0" id="totalExams">0</h3>
-                                        </div>
-                                        <div class="text-danger">
-                                            <i class="fas fa-file-alt fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-danger">
+                            <div class="stat-top">
+                                <div class="stat-icon i-danger"><i class="fas fa-chart-line"></i></div><span
+                                    class="stat-change up">+24%</span>
                             </div>
+                            <div class="stat-value" id="st-results">0</div>
+                            <div class="stat-label">Lượt thi</div>
                         </div>
                     </div>
 
-                    <!-- Charts & Recent Activity -->
-                    <div class="row g-4">
-                        <div class="col-md-8">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> Hoạt động gần đây</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead>
-                                                <tr>
-                                                    <th>Học sinh</th>
-                                                    <th>Bài thi</th>
-                                                    <th>Điểm</th>
-                                                    <th>Thời gian</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="recentActivity">
-                                                <tr>
-                                                    <td colspan="4" class="text-center text-muted">
-                                                        Đang tải dữ liệu...
-                                                    </td>
-                                                </tr>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
+                    <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px;"
+                        class="row-charts">
+                        <div class="card">
+                            <div class="card-header"><span class="card-header-title"><i
+                                        class="fas fa-chart-line text-primary"></i> Hoạt động hệ thống</span>
+                                <select class="form-select" style="width:auto;padding:5px 12px;font-size:0.78rem;">
+                                    <option>7 ngày qua</option>
+                                    <option>30 ngày</option>
+                                </select>
                             </div>
+                            <div class="card-body"><canvas id="activityChart" height="200"></canvas></div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="card shadow-sm">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Thông tin hệ thống</h5>
-                                </div>
-                                <div class="card-body">
-                                    <ul class="list-unstyled">
-                                        <li class="mb-3">
-                                            <i class="fas fa-server text-primary"></i>
-                                            <strong>Server Status:</strong>
-                                            <span class="badge bg-success ms-2">Online</span>
-                                        </li>
-                                        <li class="mb-3">
-                                            <i class="fas fa-database text-info"></i>
-                                            <strong>Database:</strong>
-                                            <span class="badge bg-success ms-2">Connected</span>
-                                        </li>
-                                        <li class="mb-3">
-                                            <i class="fas fa-clock text-warning"></i>
-                                            <strong>Uptime:</strong>
-                                            <span class="ms-2" id="uptime">0 days</span>
-                                        </li>
-                                        <li class="mb-3">
-                                            <i class="fas fa-chart-pie text-danger"></i>
-                                            <strong>Phòng thi đang chạy:</strong>
-                                            <span class="ms-2" id="activeRooms">0</span>
-                                        </li>
-                                    </ul>
+                        <div class="card">
+                            <div class="card-header"><span class="card-header-title"><i
+                                        class="fas fa-pie-chart text-success"></i> Phân bổ vai trò</span></div>
+                            <div class="card-body"><canvas id="roleChart" height="200"></canvas></div>
+                        </div>
+                    </div>
+
+                    <!-- Recent activity feed -->
+                    <div class="card">
+                        <div class="card-header"><span class="card-header-title"><i
+                                    class="fas fa-activity text-warning"></i> Hoạt động gần đây</span></div>
+                        <div class="card-body">
+                            <div id="activityFeed" style="display:flex;flex-direction:column;gap:12px;">
+                                <div class="empty-state" style="padding:24px 0;"><i class="fas fa-bell"></i>
+                                    <h6>Chưa có hoạt động</h6>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Users Management Content (hidden by default) -->
-                <div id="usersContent" class="d-none"></div>
+                <!-- STATS -->
+                <div id="pg-stats" style="display:none;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                        <div class="card">
+                            <div class="card-header"><span class="card-header-title"><i
+                                        class="fas fa-chart-line text-primary"></i> Điểm theo thời gian</span></div>
+                            <div class="card-body"><canvas id="scoreChart" height="240"></canvas></div>
+                        </div>
+                        <div class="card">
+                            <div class="card-header"><span class="card-header-title"><i
+                                        class="fas fa-chalkboard-teacher text-success"></i> Đề thi theo giáo viên</span>
+                            </div>
+                            <div class="card-body"><canvas id="teacherChart" height="240"></canvas></div>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Exams Management Content (hidden by default) -->
-                <div id="examsContent" class="d-none"></div>
+                <!-- USERS -->
+                <div id="pg-users" style="display:none;">
+                    <div class="filter-bar">
+                        <div class="search-input-wrap input-group">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" class="form-input" placeholder="Tìm người dùng...">
+                        </div>
+                        <select class="form-select" style="width:auto;padding:10px 16px;">
+                            <option>Tất cả vai trò</option>
+                            <option>Học sinh</option>
+                            <option>Giáo viên</option>
+                        </select>
+                        <select class="form-select" style="width:auto;padding:10px 16px;">
+                            <option>Tất cả trạng thái</option>
+                            <option>Hoạt động</option>
+                            <option>Bị khóa</option>
+                        </select>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Họ tên</th>
+                                        <th>Email</th>
+                                        <th>Vai trò</th>
+                                        <th>Trạng thái</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="usersTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-users"></i>
+                                                <h6>Chưa có người dùng</h6>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-                <!-- Stats Content (hidden by default) -->
-                <div id="statsContent" class="d-none"></div>
-            </main>
+                <!-- EXAMS -->
+                <div id="pg-exams" style="display:none;">
+                    <div class="filter-bar">
+                        <div class="search-input-wrap input-group">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" class="form-input" placeholder="Tìm đề thi...">
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên đề thi</th>
+                                        <th>Giáo viên</th>
+                                        <th>Số câu</th>
+                                        <th>Thời gian</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examsTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-file-alt"></i>
+                                                <h6>Chưa có đề thi</h6>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ROOMS -->
+                <div id="pg-rooms" style="display:none;">
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã phòng</th>
+                                        <th>Đề thi</th>
+                                        <th>Giáo viên</th>
+                                        <th>Bắt đầu</th>
+                                        <th>Kết thúc</th>
+                                        <th>Trạng thái</th>
+                                        <th>SL thi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roomsTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-door-open"></i>
+                                                <h6>Chưa có phòng thi</h6>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTS -->
+                <div id="pg-results" style="display:none;">
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Học sinh</th>
+                                        <th>Đề thi</th>
+                                        <th>Phòng</th>
+                                        <th>Điểm</th>
+                                        <th>Đúng/Tổng</th>
+                                        <th>Ngày thi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-chart-bar"></i>
+                                                <h6>Chưa có kết quả</h6>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay d-none">
-        <div class="spinner-border text-light spinner-border-lg" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="toast-stack" id="toastStack"></div>
     <script src="../../js/admin.js"></script>
+    <script>
+        function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN'); }
+        tick(); setInterval(tick, 1000);
+
+        const pages = ['overview', 'stats', 'users', 'exams', 'rooms', 'results'];
+        const titles = { overview: 'Dashboard', stats: 'Thống kê hệ thống', users: 'Quản lý người dùng', exams: 'Quản lý đề thi', rooms: 'Quản lý phòng thi', results: 'Kết quả thi' };
+
+        function showPage(name) {
+            pages.forEach(p => { document.getElementById('pg-' + p).style.display = p === name ? '' : 'none'; });
+            document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
+            document.getElementById('pageTitle').textContent = titles[name] || name;
+            if (name === 'overview') initCharts();
+            if (name === 'stats') initStatsCharts();
+        }
+        document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+            el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
+        });
+
+        // Charts
+        const chartCfg = {
+            backgroundColor: 'transparent',
+            color: 'rgba(248,250,252,0.6)',
+            gridColor: 'rgba(255,255,255,0.05)',
+            font: { family: 'Inter', size: 11, color: 'rgba(248,250,252,0.5)' },
+        };
+        function initCharts() {
+            const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+            if (document.getElementById('activityChart')._chart) return;
+            const ac = new Chart(document.getElementById('activityChart'), {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        { label: 'Lượt thi', data: [12, 24, 18, 32, 28, 45, 38], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#6366f1' },
+                        { label: 'Học sinh mới', data: [3, 6, 4, 8, 5, 12, 9], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#10b981' },
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: chartCfg.gridColor }, ticks: { color: 'rgba(248,250,252,0.4)', font: { family: 'Inter', size: 10 } } }, y: { grid: { color: chartCfg.gridColor }, ticks: { color: 'rgba(248,250,252,0.4)', font: { family: 'Inter', size: 10 } } } } }
+            });
+            document.getElementById('activityChart')._chart = ac;
+
+            const rc = new Chart(document.getElementById('roleChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Học sinh', 'Giáo viên', 'Admin'],
+                    datasets: [{ data: [75, 22, 3], backgroundColor: ['rgba(99,102,241,0.8)', 'rgba(16,185,129,0.8)', 'rgba(239,68,68,0.8)'], borderColor: 'transparent', hoverOffset: 4 }]
+                },
+                options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 }, padding: 16 } } } }
+            });
+            document.getElementById('roleChart')._chart = rc;
+        }
+
+        function initStatsCharts() {
+            const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
+            if (!document.getElementById('scoreChart')._chart) {
+                const sc = new Chart(document.getElementById('scoreChart'), {
+                    type: 'bar',
+                    data: { labels: months, datasets: [{ label: 'Điểm TB', data: [7.2, 6.8, 7.5, 8.1, 7.9, 7.3, 8.4, 7.8, 8.0, 8.2, 7.6, 8.5], backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 6, borderSkipped: false }] },
+                    options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } }, min: 0, max: 10 } } }
+                });
+                document.getElementById('scoreChart')._chart = sc;
+                const tc = new Chart(document.getElementById('teacherChart'), {
+                    type: 'bar', data: { labels: ['GV1', 'GV2', 'GV3', 'GV4', 'GV5'], datasets: [{ label: 'Số đề', data: [12, 8, 15, 6, 10], backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 6, borderSkipped: false }] },
+                    options: { responsive: true, indexAxis: 'y', plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } } } }
+                });
+                document.getElementById('teacherChart')._chart = tc;
+            }
+        }
+        initCharts();
+    </script>
 </body>
+
 </html>
