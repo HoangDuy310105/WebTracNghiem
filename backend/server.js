@@ -12,6 +12,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { Server } = require('socket.io');
 const http = require('http');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 // Load environment variables
 dotenv.config();
@@ -58,6 +60,13 @@ app.use('/api/exams', examRoutes);
 app.use('/api/rooms', roomRoutes);
 app.use('/api/results', resultRoutes);
 app.use('/api/admin', adminRoutes);
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'ExamPro API Docs',
+  customfavIcon: '/favicon.ico'
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

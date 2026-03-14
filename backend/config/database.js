@@ -15,7 +15,7 @@ const sequelize = new Sequelize(
         trustServerCertificate: true
       }
     },
-    logging: console.log, // Enable logging để debug
+    logging: false, // Tắt logging để tránh lỗi
     pool: {
       max: 5,
       min: 0,
