@@ -1,93 +1,150 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng Ký - Thi Trắc Nghiệm</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Đăng Ký - ExamPro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dark-theme.css">
 </head>
+
 <body>
-    <div class="auth-container">
-        <div class="container">
-            <div class="auth-card">
-                <div class="text-center mb-4">
-                    <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
-                    <h2 class="fw-bold">Đăng Ký Tài Khoản</h2>
-                    <p class="text-muted">Tạo tài khoản mới để bắt đầu</p>
+    <div class="page-bg"></div>
+
+    <div
+        style="position:fixed;top:-80px;left:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.13),transparent 70%);pointer-events:none;z-index:0;">
+    </div>
+    <div
+        style="position:fixed;bottom:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.1),transparent 70%);pointer-events:none;z-index:0;">
+    </div>
+
+    <div class="auth-wrapper">
+        <div style="position:relative;z-index:1;width:100%;max-width:480px;">
+            <a href="../index.html"
+                style="display:inline-flex;align-items:center;gap:8px;color:var(--text-3);font-size:0.82rem;font-weight:600;text-decoration:none;margin-bottom:24px;transition:color 0.2s;"
+                onmouseover="this.style.color='var(--text-2)'" onmouseout="this.style.color='var(--text-3)'">
+                <i class="fas fa-arrow-left"></i> Về trang chủ
+            </a>
+
+            <div class="auth-card" style="max-width:480px;">
+                <div class="auth-logo"><i class="fas fa-user-plus"></i></div>
+                <div class="auth-title">Tạo tài khoản</div>
+                <div class="auth-sub">Tham gia <strong style="color:var(--text-2);">ExamPro</strong> miễn phí ngay hôm
+                    nay</div>
+
+                <div id="alertBox"
+                    style="display:none;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:0.84rem;font-weight:500;">
+                </div>
+
+                <!-- Role Selector -->
+                <div class="mb-form">
+                    <label class="form-label">Bạn muốn tham gia với vai trò?</label>
+                    <div class="role-selector">
+                        <input type="radio" class="role-option" name="roleOpt" id="rStudent" value="student" checked>
+                        <label class="role-label" for="rStudent">
+                            <i class="fas fa-user-graduate" style="color:#a5b4fc;"></i>
+                            Học sinh
+                        </label>
+                        <input type="radio" class="role-option" name="roleOpt" id="rTeacher" value="teacher">
+                        <label class="role-label" for="rTeacher">
+                            <i class="fas fa-chalkboard-teacher" style="color:#6ee7b7;"></i>
+                            Giáo viên
+                        </label>
+                    </div>
+                    <input type="hidden" id="role" value="student">
                 </div>
 
                 <form id="registerForm">
-                    <div class="mb-3">
-                        <label for="fullName" class="form-label">
-                            <i class="fas fa-user"></i> Họ và tên
-                        </label>
-                        <input type="text" class="form-control" id="fullName" placeholder="Nhập họ tên" required>
+                    <div class="mb-form">
+                        <label class="form-label">Họ và tên</label>
+                        <div class="input-group">
+                            <i class="fas fa-user input-icon"></i>
+                            <input type="text" id="fullName" class="form-input" placeholder="Nguyễn Văn A" required
+                                autocomplete="name">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">
-                            <i class="fas fa-envelope"></i> Email
-                        </label>
-                        <input type="email" class="form-control" id="email" placeholder="Nhập email" required>
+                    <div class="mb-form">
+                        <label class="form-label">Email</label>
+                        <div class="input-group">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" id="email" class="form-input" placeholder="example@email.com" required
+                                autocomplete="email">
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Mật khẩu
-                        </label>
-                        <input type="password" class="form-control" id="password" placeholder="Nhập mật khẩu" required>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="mb-form">
+                        <div>
+                            <label class="form-label">Mật khẩu</label>
+                            <div class="input-group">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="password" class="form-input" placeholder="Tối thiểu 6 ký tự"
+                                    required minlength="6" style="padding-right:44px;">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="form-label">Xác nhận</label>
+                            <div class="input-group">
+                                <i class="fas fa-lock input-icon"></i>
+                                <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại"
+                                    required>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">
-                            <i class="fas fa-lock"></i> Xác nhận mật khẩu
-                        </label>
-                        <input type="password" class="form-control" id="confirmPassword" placeholder="Nhập lại mật khẩu" required>
+                    <!-- Password strength -->
+                    <div class="mb-form">
+                        <div class="pwd-strength-bars" id="pwdBars">
+                            <div class="pwd-bar" id="pb1"></div>
+                            <div class="pwd-bar" id="pb2"></div>
+                            <div class="pwd-bar" id="pb3"></div>
+                            <div class="pwd-bar" id="pb4"></div>
+                        </div>
+                        <div style="font-size:0.72rem;margin-top:5px;color:var(--text-3);" id="pwdTxt">Nhập mật khẩu để
+                            kiểm tra độ mạnh</div>
                     </div>
 
-                    <div class="mb-3">
-                        <label for="role" class="form-label">
-                            <i class="fas fa-users"></i> Vai trò
-                        </label>
-                        <select class="form-select" id="role" required>
-                            <option value="">Chọn vai trò</option>
-                            <option value="student">Học sinh</option>
-                            <option value="teacher">Giáo viên</option>
-                        </select>
-                    </div>
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="regBtn">
+                        <i class="fas fa-user-plus"></i> Đăng ký
+                    </button>
 
-                    <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="terms" required>
-                        <label class="form-check-label" for="terms">
-                            Tôi đồng ý với <a href="#" class="text-decoration-none">điều khoản sử dụng</a>
-                        </label>
-                    </div>
-
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-user-plus"></i> Đăng ký
-                        </button>
-                    </div>
-
-                    <div class="text-center">
-                        <p class="mb-0">Đã có tài khoản? 
-                            <a href="login.html" class="text-decoration-none fw-bold">Đăng nhập</a>
-                        </p>
-                        <a href="../index.html" class="text-muted small">
-                            <i class="fas fa-arrow-left"></i> Về trang chủ
-                        </a>
+                    <div style="text-align:center;margin-top:20px;">
+                        <span style="font-size:0.85rem;color:var(--text-3);">Đã có tài khoản? </span>
+                        <a href="login.html"
+                            style="font-size:0.85rem;font-weight:700;color:#a5b4fc;text-decoration:none;">Đăng nhập</a>
                     </div>
                 </form>
-
-                <!-- Alert placeholder -->
-                <div id="alertPlaceholder" class="mt-3"></div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="toast-stack" id="toastStack"></div>
+
     <script src="../js/auth.js"></script>
+    <script>
+        // Role sync
+        document.querySelectorAll('[name="roleOpt"]').forEach(r => {
+            r.addEventListener('change', () => { document.getElementById('role').value = r.value; });
+        });
+
+        // Password strength
+        const bars = ['pb1', 'pb2', 'pb3', 'pb4'].map(id => document.getElementById(id));
+        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+        const labels = ['Quá yếu', 'Yếu', 'Trung bình', 'Mạnh'];
+        document.getElementById('password').addEventListener('input', function () {
+            const v = this.value;
+            let s = 0;
+            if (v.length >= 6) s++;
+            if (v.length >= 10) s++;
+            if (/[A-Z]/.test(v) && /[0-9]/.test(v)) s++;
+            if (/[!@#$%^&*]/.test(v)) s++;
+            bars.forEach((b, i) => { b.style.background = i < s ? colors[s - 1] : 'var(--border-2)'; });
+            const txt = document.getElementById('pwdTxt');
+            txt.textContent = v ? (labels[s - 1] || 'Quá yếu') : 'Nhập mật khẩu để kiểm tra độ mạnh';
+            txt.style.color = v ? colors[s - 1] || '#ef4444' : 'var(--text-3)';
+        });
+    </script>
 </body>
+
 </html>
