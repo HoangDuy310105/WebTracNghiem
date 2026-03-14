@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Authentication API</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 1000px;
+            padding: 40px;
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+        .test-section h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .response {
+            background: #e9ecef;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .success {
+            border-left-color: #28a745;
+            background: #d4edda;
+            color: #155724;
+        }
+        .error {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .status.online {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.offline {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Test Authentication API</h1>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <span class="status online" id="serverStatus">🟢 Server đang chạy tại http://localhost:5000</span>
+        </div>
+
+        <!-- Register Section -->
+        <div class="test-section">
+            <h2>📝 Đăng ký tài khoản</h2>
+            <input type="text" id="regFullName" placeholder="Họ và tên (VD: Nguyễn Văn A)" value="Nguyễn Văn A">
+            <input type="email" id="regEmail" placeholder="Email (VD: student@test.com)" value="student@test.com">
+            <input type="password" id="regPassword" placeholder="Mật khẩu (tối thiểu 6 ký tự)" value="123456">
+            <select id="regRole">
+                <option value="student">Học sinh</option>
+                <option value="teacher">Giáo viên</option>
+                <option value="admin">Admin</option>
+            </select>
+            <button onclick="testRegister()">🚀 Đăng ký</button>
+            <div id="regResponse"></div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="test-section">
+            <h2>🔑 Đăng nhập</h2>
+            <input type="email" id="loginEmail" placeholder="Email" value="student@test.com">
+            <input type="password" id="loginPassword" placeholder="Mật khẩu" value="123456">
+            <button onclick="testLogin()">🔓 Đăng nhập</button>
+            <div id="loginResponse"></div>
+        </div>
+
+        <!-- Get Profile Section -->
+        <div class="test-section">
+            <h2>👤 Lấy thông tin profile (Yêu cầu JWT Token)</h2>
+            <button onclick="testGetProfile()">📋 Lấy Profile</button>
+            <div id="profileResponse"></div>
+        </div>
+
+        <!-- Current User Info -->
+        <div class="test-section" id="userInfo" style="display: none;">
+            <h2>✅ Đã đăng nhập</h2>
+            <div id="currentUser"></div>
+            <button onclick="logout()" style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);">🚪 Đăng xuất</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api';
+        let currentToken = localStorage.getItem('token');
+
+        // Show user info if logged in
+        if (currentToken) {
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            document.getElementById('userInfo').style.display = 'block';
+            document.getElementById('currentUser').innerHTML = `
+                <strong>Tên:</strong> ${user.fullName || 'N/A'}<br>
+                <strong>Email:</strong> ${user.email || 'N/A'}<br>
+                <strong>Vai trò:</strong> <span style="background: #667eea; color: white; padding: 3px 10px; border-radius: 15px;">${user.role || 'N/A'}</span><br>
+                <strong>Token:</strong> <code style="font-size: 11px; word-break: break-all;">${currentToken.substring(0, 50)}...</code>
+            `;
+        }
+
+        async function testRegister() {
+            const fullName = document.getElementById('regFullName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+
+            const responseDiv = document.getElementById('regResponse');
+            responseDiv.innerHTML = '<div class="response">⏳ Đang gửi request...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fullName, email, password, role })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    responseDiv.innerHTML = `<div class="response success">✅ ${data.message}\n\n${JSON.stringify(data.data, null, 2)}</div>`;
+                    
+                    // Save token
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data));
+                    currentToken = data.data.token;
+                    
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    responseDiv.innerHTML = `<div class="response error">❌ ${data.message}</div>`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="response error">❌ Lỗi: ${error.message}\n\n🔴 Server chưa chạy hoặc không kết nối được!</div>`;
+            }
+        }
+
+        async function testLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            const responseDiv = document.getElementById('loginResponse');
+            responseDiv.innerHTML = '<div class="response">⏳ Đang đăng nhập...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    responseDiv.innerHTML = `<div class="response success">✅ ${data.message}\n\n${JSON.stringify(data.data, null, 2)}</div>`;
+                    
+                    // Save token
+                    localStorage.setItem('token', data.data.token);
+                    localStorage.setItem('user', JSON.stringify(data.data));
+                    currentToken = data.data.token;
+                    
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    responseDiv.innerHTML = `<div class="response error">❌ ${data.message}</div>`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="response error">❌ Lỗi: ${error.message}</div>`;
+            }
+        }
+
+        async function testGetProfile() {
+            const responseDiv = document.getElementById('profileResponse');
+
+            if (!currentToken) {
+                responseDiv.innerHTML = '<div class="response error">❌ Bạn chưa đăng nhập! Vui lòng đăng nhập trước.</div>';
+                return;
+            }
+
+            responseDiv.innerHTML = '<div class="response">⏳ Đang lấy profile...</div>';
+
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    responseDiv.innerHTML = `<div class="response success">✅ Lấy profile thành công!\n\n${JSON.stringify(data.data, null, 2)}</div>`;
+                } else {
+                    responseDiv.innerHTML = `<div class="response error">❌ ${data.message}</div>`;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="response error">❌ Lỗi: ${error.message}</div>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            location.reload();
+        }
+
+        // Test server connection on load
+        fetch(`${API_URL}/auth/login`, { method: 'OPTIONS' })
+            .then(() => {
+                document.getElementById('serverStatus').className = 'status online';
+                document.getElementById('serverStatus').textContent = '🟢 Server đang chạy tại http://localhost:5000';
+            })
+            .catch(() => {
+                document.getElementById('serverStatus').className = 'status offline';
+                document.getElementById('serverStatus').textContent = '🔴 Server offline - Vui lòng chạy: node backend/server.js';
+            });
+    </script>
+</body>
+</html>

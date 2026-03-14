@@ -11,36 +11,45 @@ const API_URL = 'http://localhost:5000/api';
 
 // Show loading overlay
 function showLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.remove('d-none');
+    const btn = document.querySelector('button[type="submit"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+    }
 }
 
 // Hide loading overlay
 function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) overlay.classList.add('d-none');
+    const btn = document.querySelector('button[type="submit"]');
+    if (btn) {
+        btn.disabled = false;
+        // Restore original button text
+        if (window.location.pathname.includes('login')) {
+            btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Đăng nhập';
+        } else if (window.location.pathname.includes('register')) {
+            btn.innerHTML = '<i class="fas fa-user-plus"></i> Đăng ký';
+        }
+    }
 }
 
 // Show alert message
 function showAlert(message, type = 'success') {
-    const placeholder = document.getElementById('alertPlaceholder');
-    if (!placeholder) return;
+    const alertBox = document.getElementById('alertBox');
+    if (!alertBox) return;
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+    // Set style and content
+    alertBox.style.display = 'block';
+    alertBox.style.backgroundColor = type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+    alertBox.style.borderLeft = `3px solid ${type === 'success' ? '#22c55e' : '#ef4444'}`;
+    alertBox.style.color = type === 'success' ? '#22c55e' : '#ef4444';
+    alertBox.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        ${message}
     `;
 
-    placeholder.innerHTML = '';
-    placeholder.appendChild(wrapper);
-
-    // Auto dismiss after 5 seconds
+    // Auto hide after 5 seconds
     setTimeout(() => {
-        wrapper.remove();
+        alertBox.style.display = 'none';
     }, 5000);
 }
 
