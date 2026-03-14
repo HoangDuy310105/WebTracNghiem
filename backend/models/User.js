@@ -1,0 +1,79 @@
+// =====================================================
+// USER MODEL - BẢNG NGƯỜI DÙNG
+// =====================================================
+
+const { DataTypes } = require('sequelize');
+
+module.exports = (sequelize) => {
+  const User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true
+    },
+    fullName: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      field: 'full_name'
+    },
+    email: {
+      type: DataTypes.STRING(100),
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true
+      }
+    },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: false
+    },
+    role: {
+      type: DataTypes.ENUM('student', 'teacher', 'admin'),
+      allowNull: false,
+      defaultValue: 'student'
+    },
+    isActive: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true,
+      field: 'is_active'
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'created_at'
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      field: 'updated_at'
+    }
+  }, {
+    tableName: 'users',
+    timestamps: true,
+    underscored: true
+  });
+
+  // Associations
+  User.associate = (models) => {
+    // Teacher có nhiều Exam
+    User.hasMany(models.Exam, {
+      foreignKey: 'teacherId',
+      as: 'exams'
+    });
+
+    // Teacher có nhiều Room
+    User.hasMany(models.ExamRoom, {
+      foreignKey: 'teacherId',
+      as: 'rooms'
+    });
+
+    // Student có nhiều Result
+    User.hasMany(models.Result, {
+      foreignKey: 'studentId',
+      as: 'results'
+    });
+  };
+
+  return User;
+};

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Làm Bài Thi - ExamPro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../css/dark-theme.css">
+    <style>
+        .exam-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .exam-sidebar {
+            width: 280px;
+            flex-shrink: 0;
+            background: rgba(2, 6, 23, 0.9);
+            border-right: 1px solid var(--border);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .exam-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .result-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 500;
+            background: rgba(2, 6, 23, 0.97);
+            backdrop-filter: blur(20px);
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 40px;
+        }
+
+        .result-screen.show {
+            display: flex;
+        }
+
+        .score-ring {
+            width: 160px;
+            height: 160px;
+            position: relative;
+            border-radius: 50%;
+            margin: 0 auto 28px;
+            background: conic-gradient(#6366f1 0%, rgba(99, 102, 241, 0.1) 0%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 48px rgba(99, 102, 241, 0.4);
+            transition: background 1.2s ease;
+        }
+
+        .score-ring-inner {
+            width: 124px;
+            height: 124px;
+            border-radius: 50%;
+            background: var(--bg-1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-num {
+            font-size: 2.2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: white;
+        }
+
+        .score-denom {
+            font-size: 0.75rem;
+            color: var(--text-3);
+            font-weight: 600;
+        }
+
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .fade-up {
+            animation: fadeSlideUp 0.5s ease both;
+        }
+
+        .delay-1 {
+            animation-delay: 0.1s;
+        }
+
+        .delay-2 {
+            animation-delay: 0.2s;
+        }
+
+        .delay-3 {
+            animation-delay: 0.3s;
+        }
+
+        .delay-4 {
+            animation-delay: 0.4s;
+        }
+
+        @media(max-width:768px) {
+            .exam-sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page-bg"></div>
+
+    <div class="exam-layout" style="position:relative;z-index:1;">
+        <!-- EXAM SIDEBAR -->
+        <aside class="exam-sidebar">
+            <div style="padding:20px;border-bottom:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div
+                        style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;color:white;">
+                        <i class="fas fa-graduation-cap"></i></div>
+                    <span style="font-weight:800;font-size:0.95rem;">ExamPro</span>
+                </div>
+                <div style="font-size:0.88rem;font-weight:700;color:var(--text-2);margin-bottom:4px;" id="examTitle">
+                    Đang tải...</div>
+                <div style="font-size:0.75rem;color:var(--text-3);" id="examInfo">...</div>
+            </div>
+
+            <!-- Timer -->
+            <div style="padding:20px;border-bottom:1px solid var(--border);text-align:center;">
+                <div class="timer-box">
+                    <div class="timer-label">⏱ Thời gian còn lại</div>
+                    <div class="timer-value" id="timerDisplay">45:00</div>
+                </div>
+            </div>
+
+            <!-- Progress -->
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);">
+                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                    <span
+                        style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;">Tiến
+                        độ</span>
+                    <span style="font-size:0.72rem;font-weight:700;color:var(--text-3);" id="progressText">0/20</span>
+                </div>
+                <div style="height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+                    <div id="progressFill"
+                        style="height:100%;width:0%;background:linear-gradient(90deg,#6366f1,#06b6d4);border-radius:3px;transition:width 0.4s;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question navigator -->
+            <div style="padding:16px 20px;flex:1;overflow-y:auto;">
+                <div
+                    style="font-size:0.7rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">
+                    Câu hỏi</div>
+                <div class="q-nav-grid" id="qNavGrid"></div>
+                <div style="margin-top:16px;display:flex;flex-direction:column;gap:6px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.74rem;color:var(--text-3);">
+                        <div class="q-dot current" style="width:18px;height:18px;font-size:0;"></div> Đang làm
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.74rem;color:var(--text-3);">
+                        <div class="q-dot done" style="width:18px;height:18px;font-size:0;"></div> Đã trả lời
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.74rem;color:var(--text-3);">
+                        <div class="q-dot" style="width:18px;height:18px;font-size:0;"></div> Chưa làm
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit -->
+            <div style="padding:16px 20px;border-top:1px solid var(--border);">
+                <button class="btn btn-primary btn-full" id="submitBtn" onclick="openConfirmModal()">
+                    <i class="fas fa-paper-plane"></i> Nộp bài
+                </button>
+            </div>
+        </aside>
+
+        <!-- EXAM MAIN -->
+        <div class="exam-main">
+            <!-- Top bar (mobile) -->
+            <div class="exam-topbar" style="display:none;" id="mobileBar">
+                <div class="sidebar-logo-icon" style="width:32px;height:32px;border-radius:8px;font-size:0.85rem;"><i
+                        class="fas fa-graduation-cap"></i></div>
+                <div style="flex:1;font-weight:700;font-size:0.9rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+                    id="mobileTitleBar">Đang tải...</div>
+                <div class="timer-box" style="min-width:90px;padding:6px 14px;">
+                    <div class="timer-label">Còn</div>
+                    <div class="timer-value" style="font-size:1.3rem;" id="mobileTimer">45:00</div>
+                </div>
+            </div>
+
+            <!-- Questions area -->
+            <div style="max-width:760px;margin:0 auto;padding:40px 28px;" id="examArea">
+
+                <!-- Question card -->
+                <div class="question-block fade-up" id="questionCard">
+                    <div class="q-meta">Đang tải câu hỏi...</div>
+                    <div class="q-text" id="qText">Vui lòng chờ...</div>
+                    <div class="q-options" id="qOptions"></div>
+                </div>
+
+                <!-- Nav buttons -->
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;"
+                    class="fade-up delay-1">
+                    <button class="btn btn-ghost" id="prevBtn" onclick="goQuestion(currentQ - 1)">
+                        <i class="fas fa-chevron-left"></i> Câu trước
+                    </button>
+                    <span style="font-size:0.82rem;color:var(--text-3);font-weight:600;" id="qCountDisplay">Câu 1 /
+                        20</span>
+                    <button class="btn btn-primary" id="nextBtn" onclick="goQuestion(currentQ + 1)">
+                        Câu tiếp <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <div class="modal-title"><i class="fas fa-paper-plane"
+                        style="color:var(--primary);margin-right:8px;"></i>Xác nhận nộp bài</div>
+                <button class="modal-close" onclick="closeConfirmModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--text-2);font-size:0.92rem;margin-bottom:16px;">Bạn có chắc muốn nộp bài không?
+                    Hành động này không thể hoàn tác.</p>
+                <div
+                    style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;justify-content:space-around;">
+                    <div style="text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:900;color:#6ee7b7;" id="modalAnswered">0</div>
+                        <div style="font-size:0.75rem;color:var(--text-3);">Đã trả lời</div>
+                    </div>
+                    <div style="width:1px;background:var(--border);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:900;color:#fca5a5;" id="modalUnanswered">0</div>
+                        <div style="font-size:0.75rem;color:var(--text-3);">Chưa trả lời</div>
+                    </div>
+                    <div style="width:1px;background:var(--border);"></div>
+                    <div style="text-align:center;">
+                        <div style="font-size:1.5rem;font-weight:900;color:#a5b4fc;" id="modalTotal">0</div>
+                        <div style="font-size:0.75rem;color:var(--text-3);">Tổng câu</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost" onclick="closeConfirmModal()">Tiếp tục làm</button>
+                <button class="btn btn-primary" onclick="submitExam()"><i class="fas fa-check"></i> Nộp bài</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div class="result-screen" id="resultScreen">
+        <div class="score-ring" id="scoreRing">
+            <div class="score-ring-inner">
+                <div class="score-num" id="resultScore">0</div>
+                <div class="score-denom">/ 10</div>
+            </div>
+        </div>
+
+        <h2 class="fade-up" style="font-size:2rem;font-weight:900;letter-spacing:-1px;margin-bottom:8px;"
+            id="resultTitle">Hoàn thành!</h2>
+        <p class="fade-up delay-1" style="color:var(--text-3);font-size:0.92rem;margin-bottom:32px;" id="resultMsg">Bạn
+            đã hoàn thành bài thi</p>
+
+        <div class="fade-up delay-2"
+            style="display:flex;gap:20px;margin-bottom:40px;flex-wrap:wrap;justify-content:center;">
+            <div
+                style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.25);border-radius:14px;padding:20px 28px;text-align:center;min-width:120px;">
+                <div style="font-size:2rem;font-weight:900;color:#6ee7b7;" id="resCorrect">0</div>
+                <div style="font-size:0.78rem;color:var(--text-3);">Câu đúng</div>
+            </div>
+            <div
+                style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:14px;padding:20px 28px;text-align:center;min-width:120px;">
+                <div style="font-size:2rem;font-weight:900;color:#fca5a5;" id="resWrong">0</div>
+                <div style="font-size:0.78rem;color:var(--text-3);">Câu sai</div>
+            </div>
+            <div
+                style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);border-radius:14px;padding:20px 28px;text-align:center;min-width:120px;">
+                <div style="font-size:2rem;font-weight:900;color:#a5b4fc;" id="resTime">--:--</div>
+                <div style="font-size:0.78rem;color:var(--text-3);">Thời gian</div>
+            </div>
+        </div>
+
+        <div class="fade-up delay-3" style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+            <a href="student-dashboard.html" class="btn btn-primary btn-lg"><i class="fas fa-home"></i> Về trang chủ</a>
+            <button class="btn btn-ghost btn-lg" onclick="reviewAnswers()"><i class="fas fa-eye"></i> Xem đáp
+                án</button>
+        </div>
+    </div>
+
+    <div class="toast-stack" id="toastStack"></div>
+
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="../js/exam-taking.js"></script>
+    <script>
+        // ===== EXAM LOGIC =====
+        let questions = [], answers = {}, currentQ = 0, totalTime = 45 * 60, timeLeft = totalTime, timerInterval;
+        let examStartTime = Date.now(), examDone = false;
+
+        // Helper: get params
+        const params = new URLSearchParams(location.search);
+        const roomId = params.get('room') || 'demo';
+
+        // Init demo questions if no API
+        function initDemo() {
+            questions = [
+                { id: 1, text: 'Số nguyên tố nhỏ nhất lớn hơn 10 là?', options: ['11', '12', '13', '17'], correct: 'A' },
+                { id: 2, text: 'Công thức tính diện tích hình tròn là?', options: ['2πr', 'πr²', 'πd', '2πd'], correct: 'B' },
+                { id: 3, text: 'Đơn vị đo lực trong hệ SI là?', options: ['Joule', 'Watt', 'Newton', 'Pascal'], correct: 'C' },
+                { id: 4, text: 'Nguyên tử số của Carbon (C) là?', options: ['4', '6', '8', '12'], correct: 'B' },
+                { id: 5, text: 'Đạo hàm của sin(x) là?', options: ['cos(x)', '-cos(x)', 'sin(x)', '-sin(x)'], correct: 'A' },
+            ];
+            document.getElementById('examTitle').textContent = 'Kiểm tra Demo';
+            document.getElementById('examInfo').textContent = `${questions.length} câu • 45 phút`;
+            document.getElementById('mobileTitleBar') && (document.getElementById('mobileTitleBar').textContent = 'Kiểm tra Demo');
+            buildNavGrid(); goQuestion(0); startTimer(45 * 60);
+        }
+        initDemo();
+
+        function buildNavGrid() {
+            const grid = document.getElementById('qNavGrid');
+            grid.innerHTML = '';
+            questions.forEach((q, i) => {
+                const d = document.createElement('div');
+                d.className = 'q-dot'; d.textContent = i + 1;
+                d.onclick = () => goQuestion(i);
+                d.id = 'qdot-' + i;
+                grid.appendChild(d);
+            });
+        }
+
+        function goQuestion(idx) {
+            if (idx < 0 || idx >= questions.length || examDone) return;
+            // Update prev dot
+            document.getElementById('qdot-' + currentQ) && document.getElementById('qdot-' + currentQ).classList.remove('current');
+            currentQ = idx;
+            const q = questions[currentQ];
+            document.querySelector('.q-meta').textContent = `Câu ${currentQ + 1} / ${questions.length}`;
+            document.getElementById('qText').textContent = q.text;
+            document.getElementById('qCountDisplay').textContent = `Câu ${currentQ + 1} / ${questions.length}`;
+
+            // Build options
+            const optDiv = document.getElementById('qOptions');
+            optDiv.innerHTML = '';
+            const keys = ['A', 'B', 'C', 'D'];
+            q.options.forEach((opt, i) => {
+                const div = document.createElement('div');
+                div.className = 'q-option' + (answers[q.id] === keys[i] ? ' selected' : '');
+                div.innerHTML = `<div class="q-opt-key">${keys[i]}</div><span>${opt}</span>`;
+                div.onclick = () => selectAnswer(q.id, keys[i]);
+                optDiv.appendChild(div);
+            });
+
+            // Update nav dot
+            const dot = document.getElementById('qdot-' + currentQ);
+            if (dot) { dot.classList.add('current'); if (answers[q.id]) dot.classList.add('done'); }
+
+            // Progress
+            const answered = Object.keys(answers).length;
+            document.getElementById('progressText').textContent = `${answered}/${questions.length}`;
+            document.getElementById('progressFill').style.width = `${(answered / questions.length) * 100}%`;
+
+            // Prev/Next buttons
+            document.getElementById('prevBtn').disabled = currentQ === 0;
+            document.getElementById('nextBtn').textContent = currentQ === questions.length - 1 ? 'Nộp bài ' : 'Câu tiếp ';
+            document.getElementById('nextBtn').innerHTML = currentQ === questions.length - 1
+                ? '<i class="fas fa-paper-plane"></i> Nộp bài' : 'Câu tiếp <i class="fas fa-chevron-right"></i>';
+            if (currentQ === questions.length - 1) document.getElementById('nextBtn').onclick = openConfirmModal;
+            else document.getElementById('nextBtn').onclick = () => goQuestion(currentQ + 1);
+        }
+
+        function selectAnswer(qId, key) {
+            answers[qId] = key;
+            const dot = document.getElementById('qdot-' + currentQ);
+            if (dot) dot.classList.add('done');
+            goQuestion(currentQ); // refresh display
+        }
+
+        function startTimer(seconds) {
+            timeLeft = seconds;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+                const str = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                document.getElementById('timerDisplay').textContent = str;
+                document.getElementById('mobileTimer') && (document.getElementById('mobileTimer').textContent = str);
+                if (timeLeft <= 60) {
+                    document.getElementById('timerDisplay').classList.add('warn');
+                }
+                if (timeLeft <= 0) { clearInterval(timerInterval); submitExam(); }
+            }, 1000);
+        }
+
+        function openConfirmModal() {
+            const answered = Object.keys(answers).length;
+            document.getElementById('modalAnswered').textContent = answered;
+            document.getElementById('modalUnanswered').textContent = questions.length - answered;
+            document.getElementById('modalTotal').textContent = questions.length;
+            document.getElementById('confirmModal').classList.add('open');
+        }
+        function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); }
+
+        function submitExam() {
+            examDone = true;
+            clearInterval(timerInterval);
+            closeConfirmModal();
+            // Calculate score
+            let correct = 0;
+            questions.forEach(q => { if (answers[q.id] === q.correct) correct++; });
+            const score = ((correct / questions.length) * 10).toFixed(1);
+            const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
+            const eM = Math.floor(elapsed / 60), eS = elapsed % 60;
+
+            document.getElementById('resultScore').textContent = score;
+            document.getElementById('resCorrect').textContent = correct;
+            document.getElementById('resWrong').textContent = questions.length - correct;
+            document.getElementById('resTime').textContent = `${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`;
+            document.getElementById('resultTitle').textContent = parseFloat(score) >= 5 ? '🎉 Hoàn thành!' : '📚 Cần cố gắng thêm!';
+            document.getElementById('resultMsg').textContent = `Điểm số: ${score}/10 • Đúng ${correct}/${questions.length} câu`;
+
+            // Animate score ring
+            const pct = (correct / questions.length) * 100;
+            const color = pct >= 70 ? '#6366f1' : pct >= 50 ? '#f59e0b' : '#ef4444';
+            document.getElementById('scoreRing').style.background = `conic-gradient(${color} ${pct * 3.6}deg, rgba(255,255,255,0.04) 0deg)`;
+            document.getElementById('scoreRing').style.boxShadow = `0 0 48px ${color}60`;
+
+            document.getElementById('resultScreen').classList.add('show');
+        }
+
+        function reviewAnswers() {
+            document.getElementById('resultScreen').classList.remove('show');
+            document.getElementById('examArea').innerHTML = '';
+            const container = document.getElementById('examArea');
+            container.style.cssText = 'max-width:760px;margin:0 auto;padding:40px 28px;';
+            questions.forEach((q, i) => {
+                const isCorrect = answers[q.id] === q.correct;
+                const div = document.createElement('div');
+                div.style.marginBottom = '20px';
+                div.innerHTML = `
+            <div class="question-block" style="border-color:${isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};">
+                <div class="q-meta">Câu ${i + 1} ${isCorrect ? '✅ Đúng' : '❌ Sai'}</div>
+                <div class="q-text">${q.text}</div>
+                <div class="q-options">
+                    ${q.options.map((opt, j) => {
+                    const key = ['A', 'B', 'C', 'D'][j];
+                    let cls = 'q-option';
+                    if (key === q.correct) cls += ' correct';
+                    else if (key === answers[q.id]) cls += ' wrong';
+                    return `<div class="${cls}"><div class="q-opt-key">${key}</div><span>${opt}</span></div>`;
+                }).join('')}
+                </div>
+            </div>`;
+                container.appendChild(div);
+            });
+            const backBtn = document.createElement('div');
+            backBtn.innerHTML = `<a href="student-dashboard.html" class="btn btn-primary btn-lg"><i class="fas fa-home"></i> Về trang chủ</a>`;
+            backBtn.style.marginTop = '20px';
+            container.appendChild(backBtn);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,220 +1,496 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Giáo Viên</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Dashboard - Giáo Viên | ExamPro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/dark-theme.css">
 </head>
-<body>
-    <div class="d-flex">
-        <!-- Sidebar -->
-        <nav class="dashboard-sidebar" style="width: 250px;">
-            <div class="text-center text-white py-3">
-                <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i>
-                <h5>Giáo Viên</h5>
-                <p class="small mb-0" id="userName">Xin chào!</p>
-            </div>
-            <hr class="text-white">
-            <ul class="nav flex-column">
-                <li class="nav-item">
-                    <a class="nav-link active" href="#" data-page="dashboard">
-                        <i class="fas fa-th-large"></i> Trang chủ
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="my-exams">
-                        <i class="fas fa-file-alt"></i> Đề thi của tôi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="create-exam">
-                        <i class="fas fa-plus-circle"></i> Tạo đề thi mới
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="my-rooms">
-                        <i class="fas fa-door-open"></i> Phòng thi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="create-room">
-                        <i class="fas fa-plus-square"></i> Tạo phòng thi
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" data-page="profile">
-                        <i class="fas fa-user"></i> Thông tin cá nhân
-                    </a>
-                </li>
-                <li class="nav-item mt-auto">
-                    <a class="nav-link text-danger" href="#" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Đăng xuất
-                    </a>
-                </li>
-            </ul>
-        </nav>
 
-        <!-- Main Content -->
-        <div class="flex-fill">
-            <!-- Header -->
-            <header class="bg-white shadow-sm py-3 px-4">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Dashboard Giáo Viên</h4>
+<body>
+    <div class="page-bg"></div>
+    <div class="dash-wrapper">
+
+        <!-- SIDEBAR -->
+        <aside class="dash-sidebar">
+            <div class="sidebar-logo-wrap">
+                <div class="sidebar-logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <div class="sidebar-logo-name">ExamPro</div>
+            </div>
+            <div class="sidebar-user">
+                <div class="sidebar-user-row">
+                    <div class="sidebar-avatar" id="sidebarAvatar"
+                        style="background:linear-gradient(135deg,#10b981,#059669);">T</div>
                     <div>
-                        <span class="badge bg-success me-2">
-                            <i class="fas fa-clock"></i> <span id="currentTime"></span>
-                        </span>
+                        <div class="sidebar-uname" id="sidebarName">Giáo viên</div>
+                        <div class="sidebar-urole"><span class="role-badge teacher">Giáo viên</span></div>
                     </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="sidebar-section">Tổng quan</div>
+                <a class="nav-item active" data-page="dashboard" href="#"><i class="fas fa-th-large"></i> Dashboard</a>
+
+                <div class="sidebar-section">Đề Thi</div>
+                <a class="nav-item" data-page="my-exams" href="#"><i class="fas fa-file-alt"></i> Đề thi của tôi</a>
+                <a class="nav-item" data-page="create-exam" href="#"><i class="fas fa-plus-circle"></i> Tạo đề thi</a>
+                <a class="nav-item" data-page="import-excel" href="#"><i class="fas fa-file-excel"></i> Import Excel</a>
+
+                <div class="sidebar-section">Phòng Thi</div>
+                <a class="nav-item" data-page="my-rooms" href="#"><i class="fas fa-door-open"></i> Phòng thi</a>
+                <a class="nav-item" data-page="create-room" href="#"><i class="fas fa-plus"></i> Tạo phòng thi</a>
+
+                <div class="sidebar-section">Theo dõi</div>
+                <a class="nav-item" data-page="live-monitor" href="#"><i class="fas fa-broadcast-tower"></i> Giám sát
+                    live</a>
+                <a class="nav-item" data-page="results" href="#"><i class="fas fa-chart-bar"></i> Kết quả</a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a class="nav-item logout" id="logoutBtn" href="#"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <div class="dash-main">
+            <header class="dash-header">
+                <h1 class="dash-header-title" id="pageTitle">Dashboard</h1>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:12px;">
+                    <div class="header-clock" id="clock">21:00:00</div>
+                    <button class="btn btn-primary btn-sm" onclick="showPage('create-exam')"><i class="fas fa-plus"></i>
+                        Tạo đề thi</button>
                 </div>
             </header>
 
-            <!-- Content Area -->
-            <main class="p-4">
-                <!-- Dashboard Overview -->
-                <div id="dashboardContent">
-                    <div class="row g-4 mb-4">
-                        <div class="col-md-3">
-                            <div class="card stat-card primary">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Đề thi</p>
-                                            <h3 class="mb-0" id="totalExams">0</h3>
-                                        </div>
-                                        <div class="text-primary">
-                                            <i class="fas fa-file-alt fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+            <div class="dash-content">
+
+                <!-- DASHBOARD -->
+                <div id="pg-dashboard">
+                    <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+                        <div class="stat-card c-primary">
+                            <div class="stat-top">
+                                <div class="stat-icon i-primary"><i class="fas fa-file-alt"></i></div>
                             </div>
+                            <div class="stat-value" id="st-exams">0</div>
+                            <div class="stat-label">Đề thi đã tạo</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card success">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Phòng thi</p>
-                                            <h3 class="mb-0" id="totalRooms">0</h3>
-                                        </div>
-                                        <div class="text-success">
-                                            <i class="fas fa-door-open fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-success">
+                            <div class="stat-top">
+                                <div class="stat-icon i-success"><i class="fas fa-door-open"></i></div>
                             </div>
+                            <div class="stat-value" id="st-rooms">0</div>
+                            <div class="stat-label">Phòng thi</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card warning">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Học sinh</p>
-                                            <h3 class="mb-0" id="totalStudents">0</h3>
-                                        </div>
-                                        <div class="text-warning">
-                                            <i class="fas fa-users fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-warning">
+                            <div class="stat-top">
+                                <div class="stat-icon i-warning"><i class="fas fa-users"></i></div>
                             </div>
+                            <div class="stat-value" id="st-students">0</div>
+                            <div class="stat-label">Học sinh đã thi</div>
                         </div>
-                        <div class="col-md-3">
-                            <div class="card stat-card danger">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between">
-                                        <div>
-                                            <p class="text-muted mb-1">Bài đã nộp</p>
-                                            <h3 class="mb-0" id="totalSubmissions">0</h3>
-                                        </div>
-                                        <div class="text-danger">
-                                            <i class="fas fa-check-circle fa-2x"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="stat-card c-accent">
+                            <div class="stat-top">
+                                <div class="stat-icon i-accent"><i class="fas fa-star"></i></div>
                             </div>
+                            <div class="stat-value" id="st-avgScore">0.0</div>
+                            <div class="stat-label">Điểm TB</div>
                         </div>
                     </div>
 
                     <!-- Quick Actions -->
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-6">
-                            <div class="card shadow-sm hover-card h-100">
-                                <div class="card-body text-center py-4">
-                                    <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
-                                    <h5>Tạo Đề Thi Mới</h5>
-                                    <p class="text-muted">Thêm câu hỏi và đáp án cho đề thi mới</p>
-                                    <button class="btn btn-primary" data-page="create-exam">
-                                        <i class="fas fa-arrow-right"></i> Bắt đầu tạo
-                                    </button>
-                                </div>
-                            </div>
+                    <div class="card mb-4" style="margin-bottom:20px;">
+                        <div class="card-header">
+                            <span class="card-header-title"><i class="fas fa-bolt text-warning"></i> Thao tác
+                                nhanh</span>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card shadow-sm hover-card h-100">
-                                <div class="card-body text-center py-4">
-                                    <i class="fas fa-door-open fa-3x text-success mb-3"></i>
-                                    <h5>Tạo Phòng Thi</h5>
-                                    <p class="text-muted">Mở phòng thi và phát mã cho học sinh</p>
-                                    <button class="btn btn-success" data-page="create-room">
-                                        <i class="fas fa-arrow-right"></i> Tạo phòng
-                                    </button>
-                                </div>
+                        <div class="card-body">
+                            <div
+                                style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+                                <a class="quick-action" href="#" onclick="showPage('create-exam');return false;">
+                                    <i class="fas fa-plus-circle" style="color:#a5b4fc;"></i>
+                                    <span>Tạo đề thi</span>
+                                </a>
+                                <a class="quick-action" href="#" onclick="showPage('import-excel');return false;">
+                                    <i class="fas fa-file-excel" style="color:#6ee7b7;"></i>
+                                    <span>Import Excel</span>
+                                </a>
+                                <a class="quick-action" href="#" onclick="showPage('create-room');return false;">
+                                    <i class="fas fa-door-open" style="color:#fde68a;"></i>
+                                    <span>Tạo phòng thi</span>
+                                </a>
+                                <a class="quick-action" href="#" onclick="showPage('live-monitor');return false;">
+                                    <i class="fas fa-broadcast-tower" style="color:#fca5a5;"></i>
+                                    <span>Giám sát live</span>
+                                </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Recent Exams -->
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-white">
-                            <h5 class="mb-0"><i class="fas fa-file-alt"></i> Đề thi gần đây</h5>
+                    <!-- Recent exams -->
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-header-title"><i class="fas fa-file-alt text-primary"></i> Đề thi gần
+                                đây</span>
+                            <a href="#" class="btn btn-ghost btn-sm" onclick="showPage('my-exams');return false;">Xem
+                                tất cả</a>
+                        </div>
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên đề thi</th>
+                                        <th>Số câu</th>
+                                        <th>Thời gian</th>
+                                        <th>Trạng thái</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentExamsTable">
+                                    <tr>
+                                        <td colspan="5">
+                                            <div class="empty-state"><i class="fas fa-file-alt"></i>
+                                                <h6>Chưa có đề thi</h6>
+                                                <p>Tạo đề thi đầu tiên của bạn</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MY EXAMS -->
+                <div id="pg-my-exams" style="display:none;">
+                    <div class="filter-bar">
+                        <div class="search-input-wrap input-group">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" class="form-input" placeholder="Tìm đề thi..." id="examSearch">
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="showPage('create-exam')"><i
+                                class="fas fa-plus"></i> Tạo mới</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Tên đề thi</th>
+                                        <th>Số câu</th>
+                                        <th>Thời gian</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="examsTable">
+                                    <tr>
+                                        <td colspan="6">
+                                            <div class="empty-state"><i class="fas fa-file-alt"></i>
+                                                <h6>Chưa có đề thi</h6>
+                                                <p>Nhấn "Tạo mới" để tạo đề thi đầu tiên</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CREATE EXAM -->
+                <div id="pg-create-exam" style="display:none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-header-title"><i class="fas fa-plus-circle text-primary"></i> Tạo đề thi
+                                mới</span>
                         </div>
                         <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Tên đề thi</th>
-                                            <th>Số câu</th>
-                                            <th>Thời gian</th>
-                                            <th>Ngày tạo</th>
-                                            <th>Hành động</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="recentExamsTable">
-                                        <tr>
-                                            <td colspan="5" class="text-center text-muted">
-                                                Chưa có đề thi nào
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                            <form id="createExamForm">
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="mb-form">
+                                    <div>
+                                        <label class="form-label">Tên đề thi</label>
+                                        <input type="text" id="examName" class="form-input"
+                                            placeholder="VD: Kiểm tra Toán HK1" required>
+                                    </div>
+                                    <div>
+                                        <label class="form-label">Thời gian làm bài (phút)</label>
+                                        <input type="number" id="examDuration" class="form-input" value="45" min="5"
+                                            max="180" required>
+                                    </div>
+                                </div>
+                                <div class="mb-form">
+                                    <label class="form-label">Mô tả</label>
+                                    <textarea id="examDesc" class="form-input" rows="3" placeholder="Mô tả về đề thi..."
+                                        style="resize:vertical;"></textarea>
+                                </div>
+
+                                <!-- Questions -->
+                                <div
+                                    style="border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;">
+                                    <div
+                                        style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                                        <h6 style="font-weight:700;margin:0;">Danh sách câu hỏi</h6>
+                                        <button type="button" class="btn btn-primary btn-sm" id="addQuestionBtn"><i
+                                                class="fas fa-plus"></i> Thêm câu hỏi</button>
+                                    </div>
+                                    <div id="questionsContainer">
+                                        <div class="empty-state" style="padding:32px 0;"><i
+                                                class="fas fa-question-circle"></i>
+                                            <h6>Chưa có câu hỏi</h6>
+                                            <p>Nhấn "Thêm câu hỏi" để bắt đầu</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:12px;">
+                                    <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Lưu đề
+                                        thi</button>
+                                    <button type="button" class="btn btn-ghost" onclick="showPage('my-exams')"><i
+                                            class="fas fa-times"></i> Hủy</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- IMPORT EXCEL -->
+                <div id="pg-import-excel" style="display:none;">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-header-title"><i class="fas fa-file-excel text-success"></i> Import câu
+                                hỏi từ Excel</span>
+                            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i> Tải template</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="upload-zone" id="dropZone">
+                                <i class="fas fa-cloud-upload-alt"
+                                    style="font-size:3rem;color:var(--primary);margin-bottom:16px;opacity:0.7;"></i>
+                                <h5 style="font-weight:700;margin-bottom:8px;">Kéo thả file Excel vào đây</h5>
+                                <p style="color:var(--text-3);font-size:0.88rem;margin-bottom:20px;">Hoặc nhấn để chọn
+                                    file. Hỗ trợ .xlsx, .xls</p>
+                                <button type="button" class="btn btn-primary"><i class="fas fa-folder-open"></i> Chọn
+                                    file</button>
+                                <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none;">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Other content sections (hidden by default) -->
-                <div id="myExamsContent" class="d-none"></div>
-                <div id="createExamContent" class="d-none"></div>
-                <div id="myRoomsContent" class="d-none"></div>
-                <div id="createRoomContent" class="d-none"></div>
-                <div id="profileContent" class="d-none"></div>
-            </main>
+                <!-- MY ROOMS -->
+                <div id="pg-my-rooms" style="display:none;">
+                    <div class="filter-bar">
+                        <div class="search-input-wrap input-group">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" class="form-input" placeholder="Tìm phòng thi...">
+                        </div>
+                        <button class="btn btn-primary btn-sm" onclick="showPage('create-room')"><i
+                                class="fas fa-plus"></i> Tạo phòng mới</button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>Mã phòng</th>
+                                        <th>Đề thi</th>
+                                        <th>Bắt đầu</th>
+                                        <th>Kết thúc</th>
+                                        <th>Trạng thái</th>
+                                        <th>SL</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="roomsTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-door-open"></i>
+                                                <h6>Chưa có phòng thi</h6>
+                                                <p>Tạo phòng thi để học sinh tham gia</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CREATE ROOM -->
+                <div id="pg-create-room" style="display:none;">
+                    <div style="max-width:640px;">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-header-title"><i class="fas fa-plus text-success"></i> Tạo phòng
+                                    thi</span>
+                            </div>
+                            <div class="card-body">
+                                <form id="createRoomForm">
+                                    <div class="mb-form">
+                                        <label class="form-label">Chọn đề thi</label>
+                                        <select id="roomExam" class="form-select">
+                                            <option value="">-- Chọn đề thi --</option>
+                                        </select>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="mb-form">
+                                        <div>
+                                            <label class="form-label">Thời gian bắt đầu</label>
+                                            <input type="datetime-local" id="roomStart" class="form-input">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Thời gian kết thúc</label>
+                                            <input type="datetime-local" id="roomEnd" class="form-input">
+                                        </div>
+                                    </div>
+
+                                    <!-- Generated code preview -->
+                                    <div class="room-code-block mb-form">
+                                        <div
+                                            style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+                                            Mã phòng thi</div>
+                                        <div class="room-code-value" id="previewCode">ABC123</div>
+                                        <div style="font-size:0.78rem;color:var(--text-3);margin-top:10px;">Mã sẽ được
+                                            tạo tự động khi lưu</div>
+                                    </div>
+
+                                    <div style="display:flex;gap:12px;">
+                                        <button type="submit" class="btn btn-success"><i class="fas fa-plus"></i> Tạo
+                                            phòng</button>
+                                        <button type="button" class="btn btn-ghost" onclick="showPage('my-rooms')"><i
+                                                class="fas fa-times"></i> Hủy</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LIVE MONITOR -->
+                <div id="pg-live-monitor" style="display:none;">
+                    <div class="card" style="margin-bottom:16px;">
+                        <div class="card-header">
+                            <span class="card-header-title"><i class="fas fa-broadcast-tower text-danger"></i> Giám sát
+                                học sinh đang thi</span>
+                            <select class="form-select" style="width:auto;padding:6px 14px;font-size:0.82rem;"
+                                id="monitorRoom">
+                                <option>-- Chọn phòng thi --</option>
+                            </select>
+                        </div>
+                        <div class="card-body">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"
+                                id="liveGrid">
+                                <div class="empty-state" style="grid-column:1/-1;padding:48px 0;">
+                                    <i class="fas fa-wifi"></i>
+                                    <h6>Chưa có học sinh online</h6>
+                                    <p>Chọn phòng thi đang hoạt động để giám sát</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESULTS -->
+                <div id="pg-results" style="display:none;">
+                    <div class="filter-bar">
+                        <div class="search-input-wrap input-group">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" class="form-input" placeholder="Tìm kết quả...">
+                        </div>
+                        <select class="form-select" style="width:auto;padding:10px 16px;">
+                            <option>-- Tất cả phòng --</option>
+                        </select>
+                    </div>
+                    <div class="card">
+                        <div class="card-body p0">
+                            <table class="dark-table">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Học sinh</th>
+                                        <th>Đề thi</th>
+                                        <th>Phòng</th>
+                                        <th>Điểm</th>
+                                        <th>Đúng/Tổng</th>
+                                        <th>Ngày thi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resultsTable">
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="empty-state"><i class="fas fa-chart-bar"></i>
+                                                <h6>Chưa có kết quả</h6>
+                                                <p>Kết quả sẽ hiển thị khi học sinh hoàn thành bài thi</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 
-    <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay d-none">
-        <div class="spinner-border text-light spinner-border-lg" role="status">
-            <span class="visually-hidden">Loading...</span>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="toast-stack" id="toastStack"></div>
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
     <script src="../js/teacher.js"></script>
+    <script>
+        function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN'); }
+        tick(); setInterval(tick, 1000);
+
+        const pages = ['dashboard', 'my-exams', 'create-exam', 'import-excel', 'my-rooms', 'create-room', 'live-monitor', 'results'];
+        const titles = { dashboard: 'Dashboard', 'my-exams': 'Đề thi của tôi', 'create-exam': 'Tạo đề thi', 'import-excel': 'Import Excel', 'my-rooms': 'Phòng thi', 'create-room': 'Tạo phòng thi', 'live-monitor': 'Giám sát Live', 'results': 'Kết quả' };
+
+        function showPage(name) {
+            pages.forEach(p => { document.getElementById('pg-' + p).style.display = p === name ? '' : 'none'; });
+            document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
+            document.getElementById('pageTitle').textContent = titles[name] || name;
+        }
+        document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+            el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
+        });
+
+        // Add question
+        let qCount = 0;
+        document.getElementById('addQuestionBtn').addEventListener('click', function () {
+            qCount++;
+            const container = document.getElementById('questionsContainer');
+            if (qCount === 1) container.innerHTML = '';
+            const div = document.createElement('div');
+            div.style.cssText = 'border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;position:relative;';
+            div.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+                <span class="badge badge-primary">Câu ${qCount}</span>
+                <button type="button" class="btn btn-ghost btn-sm" onclick="this.closest('[style]').remove();qCount--;" style="color:var(--text-3);"><i class="fas fa-trash"></i></button>
+            </div>
+            <div class="mb-form">
+                <label class="form-label">Nội dung câu hỏi</label>
+                <textarea class="form-input q-text" rows="2" placeholder="Nhập câu hỏi..." required style="resize:vertical;"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                ${['A', 'B', 'C', 'D'].map(letter => `
+                <div>
+                    <label class="form-label">Đáp án ${letter}</label>
+                    <input type="text" class="form-input ans-${letter.toLowerCase()}" placeholder="Đáp án ${letter}">
+                </div>`).join('')}
+            </div>
+            <div>
+                <label class="form-label">Đáp án đúng</label>
+                <select class="form-select correct-ans" style="width:auto;">
+                    <option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option>
+                </select>
+            </div>`;
+            container.appendChild(div);
+        });
+
+        // Preview room code
+        function randomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
+        document.getElementById('previewCode').textContent = randomCode();
+    </script>
 </body>
+
 </html>
