@@ -1,294 +1,1586 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Thi Trắc Nghiệm Trực Tuyến</title>
+    <title>ExamPro - Hệ Thống Thi Trắc Nghiệm Trực Tuyến</title>
+    <meta name="description"
+        content="Nền tảng thi trắc nghiệm trực tuyến hiện đại cho học sinh và giáo viên. Thi online, quản lý đề thi, xem kết quả dễ dàng.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --accent: #06b6d4;
+            --gold: #f59e0b;
+            --success: #10b981;
+            --dark: #0f172a;
+            --darker: #020617;
+            --card-bg: rgba(255, 255, 255, 0.04);
+            --border-glass: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--darker);
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* ======================== CANVAS 3D ======================== */
+        #threejs-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ======================== NAVBAR ======================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 16px 0;
+            transition: all 0.4s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(2, 6, 23, 0.85) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 0;
+        }
+
+        .navbar-brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: white;
+        }
+
+        .nav-link-custom {
+            color: rgba(255, 255, 255, 0.7) !important;
+            font-weight: 500;
+            font-size: 0.9rem;
+            padding: 8px 16px !important;
+            border-radius: 8px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .nav-link-custom:hover {
+            color: white !important;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-nav-login {
+            background: transparent;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            color: white;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 8px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-nav-login:hover {
+            border-color: white;
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .btn-nav-signup {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.88rem;
+            padding: 8px 20px;
+            border-radius: 10px;
+            transition: all 0.3s;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-nav-signup:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.5);
+            color: white;
+        }
+
+        /* ======================== HERO ======================== */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            z-index: 1;
+            padding-top: 80px;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse 80% 60% at 50% -10%, rgba(99, 102, 241, 0.25) 0%, transparent 70%),
+                radial-gradient(ellipse 60% 50% at 80% 50%, rgba(139, 92, 246, 0.15) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 40% at 10% 80%, rgba(6, 182, 212, 0.1) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #a5b4fc;
+            font-size: 0.8rem;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 100px;
+            margin-bottom: 28px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .hero-label span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #6366f1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.5);
+            }
+        }
+
+        .hero-title {
+            font-size: clamp(2.8rem, 5vw, 4.2rem);
+            font-weight: 900;
+            line-height: 1.1;
+            letter-spacing: -2px;
+            margin-bottom: 24px;
+        }
+
+        .hero-title .line1 {
+            color: white;
+        }
+
+        .hero-title .line2 {
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 40%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-title .line3 {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .hero-desc {
+            font-size: 1.05rem;
+            color: rgba(255, 255, 255, 0.55);
+            line-height: 1.7;
+            max-width: 520px;
+            margin-bottom: 40px;
+        }
+
+        .hero-cta {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            border: none;
+            color: white;
+            font-weight: 700;
+            padding: 15px 32px;
+            border-radius: 14px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.45);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(99, 102, 241, 0.55);
+            color: white;
+        }
+
+        .btn-hero-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1.5px solid rgba(255, 255, 255, 0.14);
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 600;
+            padding: 15px 28px;
+            border-radius: 14px;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn-hero-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+            color: white;
+        }
+
+        /* Stats row */
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 52px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {}
+
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -1px;
+        }
+
+        .stat-num span {
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-txt {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 500;
+            margin-top: 2px;
+        }
+
+        /* 3D Preview Card */
+        .hero-visual {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .preview-3d-container {
+            position: relative;
+            width: 480px;
+            max-width: 100%;
+            perspective: 1000px;
+        }
+
+        .preview-card-main {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 28px;
+            transform: rotateY(-12deg) rotateX(6deg);
+            transition: transform 0.6s ease;
+            box-shadow: 30px 30px 60px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: cardFloat 6s ease-in-out infinite;
+        }
+
+        .preview-card-main:hover {
+            transform: rotateY(0deg) rotateX(0deg);
+        }
+
+        @keyframes cardFloat {
+
+            0%,
+            100% {
+                transform: rotateY(-12deg) rotateX(6deg) translateY(0);
+            }
+
+            50% {
+                transform: rotateY(-12deg) rotateX(6deg) translateY(-12px);
+            }
+        }
+
+        .pc-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .pc-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pc-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .pc-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pc-question {
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+        }
+
+        .pc-q-num {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .pc-q-text {
+            font-size: 0.88rem;
+            color: white;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .pc-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .pc-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.82rem;
+            color: rgba(255, 255, 255, 0.65);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .pc-option.selected {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.2);
+            color: white;
+        }
+
+        .pc-option.correct {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.2);
+            color: white;
+        }
+
+        .pc-opt-label {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .pc-option.selected .pc-opt-label {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: white;
+        }
+
+        .pc-option.correct .pc-opt-label {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .pc-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .pc-timer {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            border-radius: 8px;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #f59e0b;
+            font-family: monospace;
+        }
+
+        .pc-progress {
+            flex: 1;
+            margin: 0 16px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .pc-progress-fill {
+            height: 100%;
+            width: 65%;
+            background: linear-gradient(90deg, #6366f1, #06b6d4);
+            border-radius: 2px;
+        }
+
+        .pc-prog-txt {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        /* Floating chips */
+        .floating-chip {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            padding: 12px 16px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            animation: chipFloat 4s ease-in-out infinite;
+            white-space: nowrap;
+        }
+
+        .fc-1 {
+            top: -20px;
+            right: -40px;
+            animation-delay: 0s;
+        }
+
+        .fc-2 {
+            bottom: 20px;
+            left: -50px;
+            animation-delay: 1.5s;
+        }
+
+        .fc-3 {
+            top: 50%;
+            right: -60px;
+            animation-delay: 0.8s;
+        }
+
+        @keyframes chipFloat {
+
+            0%,
+            100% {
+                transform: translateY(0)rotate(-2deg)
+            }
+
+            50% {
+                transform: translateY(-10px)rotate(2deg)
+            }
+        }
+
+        /* ======================== SECTION COMMONS ======================== */
+        section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .section-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 14px;
+            border-radius: 100px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: clamp(2rem, 3.5vw, 2.8rem);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+        }
+
+        .section-sub {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.45);
+            max-width: 520px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        /* ======================== FEATURES ======================== */
+        .features-section {
+            padding: 120px 0;
+        }
+
+        .features-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 100%;
+            background: linear-gradient(180deg, transparent, rgba(99, 102, 241, 0.3), transparent);
+        }
+
+        .feature-card-3d {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 24px;
+            padding: 32px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .feature-card-3d::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+        }
+
+        .feature-card-3d:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(99, 102, 241, 0.35);
+            transform: translateY(-8px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2);
+        }
+
+        .fc-glow {
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            opacity: 0.12;
+            filter: blur(40px);
+        }
+
+        .fc-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fc-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fc-desc {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.7;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fc-list {
+            list-style: none;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fc-list li {
+            padding: 8px 0;
+            font-size: 0.84rem;
+            color: rgba(255, 255, 255, 0.6);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .fc-list li:last-child {
+            border-bottom: none;
+        }
+
+        .fc-list li i {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .fc-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-decoration: none;
+            margin-top: 16px;
+            transition: gap 0.2s;
+            position: relative;
+            z-index: 1;
+        }
+
+        .fc-cta:hover {
+            gap: 10px;
+        }
+
+        /* ======================== HOW IT WORKS ======================== */
+        .how-section {
+            padding: 120px 0;
+        }
+
+        .how-steps {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+
+        .how-steps::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: calc(16.6% + 40px);
+            right: calc(16.6% + 40px);
+            height: 2px;
+            background: linear-gradient(90deg, rgba(99, 102, 241, 0.6), rgba(139, 92, 246, 0.6), rgba(6, 182, 212, 0.6));
+        }
+
+        .how-step {
+            flex: 1;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .step-num {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 1.8rem;
+            font-weight: 900;
+            position: relative;
+            z-index: 1;
+            border: 2px solid;
+        }
+
+        .step-title {
+            font-size: 1rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .step-desc {
+            font-size: 0.84rem;
+            color: rgba(255, 255, 255, 0.45);
+            line-height: 1.6;
+        }
+
+        /* ======================== TESTIMONIALS / STATS ======================== */
+        .stats-section {
+            padding: 100px 0;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(6, 182, 212, 0.08) 100%);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .big-stat {
+            text-align: center;
+        }
+
+        .big-stat-num {
+            font-size: clamp(2.5rem, 5vw, 3.8rem);
+            font-weight: 900;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .big-stat-label {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+            margin-top: 4px;
+        }
+
+        /* ======================== CTA SECTION ======================== */
+        .cta-section {
+            padding: 140px 0;
+        }
+
+        .cta-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 32px;
+            padding: 80px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(99, 102, 241, 0.1) 0%, transparent 60%);
+            animation: ctaGlow 8s ease-in-out infinite;
+        }
+
+        @keyframes ctaGlow {
+
+            0%,
+            100% {
+                transform: scale(1)rotate(0)
+            }
+
+            50% {
+                transform: scale(1.1)rotate(180deg)
+            }
+        }
+
+        .cta-title {
+            font-size: clamp(2rem, 4vw, 3rem);
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-desc {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            max-width: 480px;
+            margin: 0 auto 40px;
+            line-height: 1.7;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-btns {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ======================== FOOTER ======================== */
+        footer {
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 48px 0 28px;
+        }
+
+        .footer-brand {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .footer-desc {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.35);
+            line-height: 1.6;
+            max-width: 260px;
+        }
+
+        .footer-heading {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 16px;
+        }
+
+        .footer-link {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-decoration: none;
+            margin-bottom: 10px;
+            transition: color 0.2s;
+        }
+
+        .footer-link:hover {
+            color: white;
+        }
+
+        .footer-copy {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.25);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 24px;
+            margin-top: 40px;
+        }
+
+        /* Scroll indicators */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            animation: scrollBounce 2s ease-in-out infinite;
+        }
+
+        .scroll-indicator span {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        @keyframes scrollBounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0)
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(8px)
+            }
+        }
+
+        /* Divider line */
+        .divider {
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, #6366f1, #8b5cf6);
+            border-radius: 2px;
+            margin: 20px auto;
+        }
+
+        /* Animations */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .delay-1 {
+            transition-delay: 0.1s;
+        }
+
+        .delay-2 {
+            transition-delay: 0.2s;
+        }
+
+        .delay-3 {
+            transition-delay: 0.3s;
+        }
+
+        .delay-4 {
+            transition-delay: 0.4s;
+        }
+
+        @media(max-width:768px) {
+            .hero-visual {
+                margin-top: 60px;
+            }
+
+            .preview-card-main {
+                transform: none !important;
+                animation: cardFloatSimple 6s ease-in-out infinite;
+            }
+
+            @keyframes cardFloatSimple {
+
+                0%,
+                100% {
+                    transform: translateY(0)
+                }
+
+                50% {
+                    transform: translateY(-8px)
+                }
+            }
+
+            .floating-chip {
+                display: none;
+            }
+
+            .how-steps {
+                flex-direction: column;
+            }
+
+            .how-steps::before {
+                display: none;
+            }
+
+            .cta-card {
+                padding: 50px 28px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <!-- Navigation - Glass Morphism Style -->
-    <nav class="navbar navbar-expand-lg navbar-dark fixed-top glass-nav">
+
+    <!-- 3D Canvas Background -->
+    <canvas id="threejs-canvas"></canvas>
+
+    <!-- ======================== NAVBAR ======================== -->
+    <nav class="navbar navbar-expand-lg" id="navbar">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="index.html">
-                <i class="fas fa-graduation-cap me-2"></i>
-                <span class="gradient-text">ExamPro</span>
+            <a class="navbar-brand" href="#">
+                <div class="nav-logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                ExamPro
             </a>
-            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                style="color:white;">
+                <i class="fas fa-bars"></i>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="index.html">Trang chủ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#features">Tính năng</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link px-3" href="#how-it-works">Hướng dẫn</a>
-                    </li>
-                    <li class="nav-item ms-lg-2">
-                        <a class="btn btn-outline-light btn-sm rounded-pill px-4" href="pages/login.html">
-                            <i class="fas fa-sign-in-alt me-1"></i> Đăng nhập
-                        </a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a class="btn btn-light btn-sm rounded-pill px-4 text-primary fw-bold" href="pages/register.html">
-                            <i class="fas fa-user-plus me-1"></i> Đăng ký
-                        </a>
-                    </li>
+                <ul class="navbar-nav mx-auto gap-1">
+                    <li class="nav-item"><a class="nav-link-custom" href="#features">Tính năng</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="#how-it-works">Hướng dẫn</a></li>
+                    <li class="nav-item"><a class="nav-link-custom" href="#stats">Thống kê</a></li>
                 </ul>
+                <div class="d-flex align-items-center gap-3">
+                    <a href="pages/login.html" class="btn-nav-login">Đăng nhập</a>
+                    <a href="pages/register.html" class="btn-nav-signup">Đăng ký miễn phí</a>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section position-relative overflow-hidden">
-        <!-- Animated Background -->
-        <div class="hero-bg-animated"></div>
-        
-        <!-- Content -->
-        <div class="container position-relative" style="z-index: 10;">
-            <div class="row align-items-center" style="padding: 20px 0;">
+    <!-- ======================== HERO ======================== -->
+    <section class="hero">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <!-- Left Content -->
                 <div class="col-lg-6">
-                    <div class="hero-content">
-                        <h1 class="display-4 fw-bold mb-4 text-white hero-title">
-                            Hệ Thống Thi Trắc Nghiệm
-                            <span class="gradient-text-hero d-block">Trực Tuyến</span>
-                        </h1>
-                        <p class="lead mb-4 text-white-50 fs-5">
-                            Nền tảng thi trực tuyến hiện đại, giúp giáo viên tạo đề thi thông minh và học sinh tham gia thi một cách dễ dàng
-                        </p>
-                        <div class="d-flex flex-wrap gap-3">
-                            <a href="pages/register.html" class="btn btn-light btn-lg px-5 rounded-pill shadow-lg hover-lift">
-                                <i class="fas fa-rocket me-2"></i> Bắt đầu ngay
-                            </a>
-                            <a href="pages/login.html" class="btn btn-outline-light btn-lg px-5 rounded-pill hover-lift">
-                                <i class="fas fa-sign-in-alt me-2"></i> Xem demo
-                            </a>
+                    <div class="hero-label">
+                        <span></span>
+                        Nền tảng thi trắc nghiệm #1 Việt Nam
+                    </div>
+                    <h1 class="hero-title">
+                        <span class="line1">Hệ Thống Thi</span><br>
+                        <span class="line2">Trắc Nghiệm</span><br>
+                        <span class="line3">Trực Tuyến</span>
+                    </h1>
+                    <p class="hero-desc">
+                        Nền tảng thi trực tuyến hiện đại thế hệ mới. Giáo viên tạo đề thi thông minh,
+                        học sinh tham gia thi mọi lúc mọi nơi với trải nghiệm như thật.
+                    </p>
+                    <div class="hero-cta">
+                        <a href="pages/register.html" class="btn-hero-primary">
+                            <i class="fas fa-rocket"></i> Bắt đầu miễn phí
+                        </a>
+                        <a href="#features" class="btn-hero-secondary">
+                            <i class="fas fa-play-circle"></i> Xem tính năng
+                        </a>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat-item">
+                            <div class="stat-num"><span id="countStudents">0</span>+</div>
+                            <div class="stat-txt">Học sinh</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num"><span id="countExams">0</span>+</div>
+                            <div class="stat-txt">Đề thi</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-num"><span id="countTeachers">0</span>+</div>
+                            <div class="stat-txt">Giáo viên</div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Right Side - Hero Image -->
-                <div class="col-lg-6 d-none d-lg-block">
-                    <div class="hero-image-container">
-                        <!-- Hero Illustration -->
-                        <div class="hero-illustration">
-                            <div class="hero-shape shape-1"></div>
-                            <div class="hero-shape shape-2"></div>
-                            <div class="hero-shape shape-3"></div>
-                            <div class="hero-icon-grid">
-                                <div class="hero-icon"><i class="fas fa-graduation-cap"></i></div>
-                                <div class="hero-icon"><i class="fas fa-book"></i></div>
-                                <div class="hero-icon"><i class="fas fa-trophy"></i></div>
-                                <div class="hero-icon"><i class="fas fa-chart-line"></i></div>
-                                <div class="hero-icon"><i class="fas fa-users"></i></div>
-                                <div class="hero-icon"><i class="fas fa-star"></i></div>
+
+                <!-- Right: 3D Preview Card -->
+                <div class="col-lg-6">
+                    <div class="hero-visual">
+                        <div class="preview-3d-container">
+                            <!-- Floating chips -->
+                            <div class="floating-chip fc-1" style="color:#10b981;">
+                                <i class="fas fa-check-circle" style="color:#10b981;"></i>
+                                <span>Nộp bài thành công</span>
                             </div>
+                            <div class="floating-chip fc-2" style="color:#f59e0b;">
+                                <i class="fas fa-users" style="color:#6366f1;"></i>
+                                <span>24 học sinh đang thi</span>
+                            </div>
+                            <div class="floating-chip fc-3" style="color:#06b6d4;">
+                                <i class="fas fa-star" style="color:#f59e0b;"></i>
+                                <span>Điểm: 9.5</span>
+                            </div>
+
+                            <!-- Main preview card -->
+                            <div class="preview-card-main">
+                                <div class="pc-header">
+                                    <div class="pc-dots">
+                                        <div class="pc-dot" style="background:#ef4444;"></div>
+                                        <div class="pc-dot" style="background:#f59e0b;"></div>
+                                        <div class="pc-dot" style="background:#10b981;"></div>
+                                    </div>
+                                    <div class="pc-title">📝 Đề thi Toán - HK1</div>
+                                    <div></div>
+                                </div>
+                                <div class="pc-question">
+                                    <div class="pc-q-num">Câu 3 / 20</div>
+                                    <div class="pc-q-text">Cho hàm số f(x) = x² + 2x - 3. Giá trị của f'(2) bằng bao
+                                        nhiêu?</div>
+                                </div>
+                                <div class="pc-options">
+                                    <div class="pc-option">
+                                        <div class="pc-opt-label">A</div>
+                                        <span>f'(2) = 4</span>
+                                    </div>
+                                    <div class="pc-option selected">
+                                        <div class="pc-opt-label">B</div>
+                                        <span>f'(2) = 6</span>
+                                    </div>
+                                    <div class="pc-option correct">
+                                        <div class="pc-opt-label">✓</div>
+                                        <span>f'(2) = 6 (đúng!)</span>
+                                    </div>
+                                    <div class="pc-option">
+                                        <div class="pc-opt-label">D</div>
+                                        <span>f'(2) = 8</span>
+                                    </div>
+                                </div>
+                                <div class="pc-footer">
+                                    <div class="pc-timer" id="previewTimer">32:47</div>
+                                    <div class="pc-progress">
+                                        <div class="pc-progress-fill"></div>
+                                    </div>
+                                    <div class="pc-prog-txt">13/20</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        
+        <!-- Scroll indicator -->
+        <div class="scroll-indicator">
+            <span>Cuộn xuống</span>
+            <i class="fas fa-chevron-down" style="color:rgba(255,255,255,0.3);font-size:0.8rem;"></i>
+        </div>
     </section>
 
-    <!-- Features Section -->
-    <section id="features" class="py-5">
-        <div class="container py-5">
-            <div class="text-center mb-5" data-aos="fade-up">
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">
-                    <i class="fas fa-star me-2"></i>Tính năng
-                </span>
-                <h2 class="display-5 fw-bold mb-3">Giải Pháp Toàn Diện</h2>
-                <p class="lead text-muted">Đáp ứng mọi nhu cầu của học sinh, giáo viên và quản trị viên</p>
+    <!-- ======================== FEATURES ======================== -->
+    <section class="features-section" id="features">
+        <div class="container">
+            <div class="text-center mb-5 reveal">
+                <div class="section-label"><i class="fas fa-sparkles" style="font-size:0.7rem;"></i> Tính năng</div>
+                <h2 class="section-title">Giải Pháp Toàn Diện</h2>
+                <div class="divider"></div>
+                <p class="section-sub">Ba vai trò, một nền tảng đáp ứng mọi nhu cầu giáo dục hiện đại.</p>
             </div>
             <div class="row g-4">
-                <!-- Student Features -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
-                    <div class="modern-feature-card">
-                        <div class="feature-card-header bg-gradient-blue">
-                            <div class="feature-card-icon">
-                                <i class="fas fa-user-graduate"></i>
-                            </div>
-                            <h4 class="text-white mb-0">Dành cho Học Sinh</h4>
+                <!-- Student card -->
+                <div class="col-lg-4 reveal delay-1">
+                    <div class="feature-card-3d">
+                        <div class="fc-glow" style="background:#6366f1;"></div>
+                        <div class="fc-icon"
+                            style="background:rgba(99,102,241,0.15);border:1px solid rgba(99,102,241,0.3);">
+                            <i class="fas fa-user-graduate" style="color:#a5b4fc;"></i>
                         </div>
-                        <div class="feature-card-body">
-                            <ul class="feature-list">
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Tham gia thi với mã phòng</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Làm bài với đồng hồ đếm ngược</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Xem kết quả chi tiết</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Theo dõi tiến độ học tập</span>
-                                </li>
-                            </ul>
-                            <a href="pages/register.html" class="btn btn-primary w-100 rounded-pill mt-3">
-                                Bắt đầu <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
+                        <div class="fc-title">Dành cho Học Sinh</div>
+                        <div class="fc-desc">Tham gia thi chỉ với mã phòng, làm bài với đồng hồ đếm ngược trực tuyến.
                         </div>
+                        <ul class="fc-list">
+                            <li><i class="fas fa-check text-success"></i> Tham gia thi bằng mã phòng</li>
+                            <li><i class="fas fa-check text-success"></i> Đồng hồ đếm ngược realtime</li>
+                            <li><i class="fas fa-check text-success"></i> Xem kết quả & đáp án chi tiết</li>
+                            <li><i class="fas fa-check text-success"></i> Theo dõi lịch sử thi cử</li>
+                        </ul>
+                        <a href="pages/register.html?role=student" class="fc-cta" style="color:#a5b4fc;">
+                            Tham gia ngay <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
-
-                <!-- Teacher Features -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
-                    <div class="modern-feature-card">
-                        <div class="feature-card-header bg-gradient-green">
-                            <div class="feature-card-icon">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                            <h4 class="text-white mb-0">Dành cho Giáo Viên</h4>
+                <!-- Teacher card -->
+                <div class="col-lg-4 reveal delay-2">
+                    <div class="feature-card-3d" style="border-color:rgba(16,185,129,0.15);">
+                        <div class="fc-glow" style="background:#10b981;"></div>
+                        <div class="fc-icon"
+                            style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);">
+                            <i class="fas fa-chalkboard-teacher" style="color:#6ee7b7;"></i>
                         </div>
-                        <div class="feature-card-body">
-                            <ul class="feature-list">
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Tạo đề thi trắc nghiệm</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Tạo phòng thi với mã code</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Quản lý thời gian thi</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Xem kết quả học sinh</span>
-                                </li>
-                            </ul>
-                            <a href="pages/register.html" class="btn btn-success w-100 rounded-pill mt-3">
-                                Tạo đề thi <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
+                        <div class="fc-title">Dành cho Giáo Viên</div>
+                        <div class="fc-desc">Tạo đề thi thông minh, quản lý phòng thi và theo dõi kết quả học sinh.
                         </div>
+                        <ul class="fc-list">
+                            <li><i class="fas fa-check text-success"></i> Tạo đề thi trực tuyến / import Excel</li>
+                            <li><i class="fas fa-check text-success"></i> Tạo phòng thi với mã riêng</li>
+                            <li><i class="fas fa-check text-success"></i> Giám sát học sinh realtime</li>
+                            <li><i class="fas fa-check text-success"></i> Xuất kết quả ra Excel</li>
+                        </ul>
+                        <a href="pages/register.html?role=teacher" class="fc-cta" style="color:#6ee7b7;">
+                            Tạo đề thi <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
-
-                <!-- Admin Features -->
-                <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
-                    <div class="modern-feature-card">
-                        <div class="feature-card-header bg-gradient-red">
-                            <div class="feature-card-icon">
-                                <i class="fas fa-user-shield"></i>
-                            </div>
-                            <h4 class="text-white mb-0">Dành cho Admin</h4>
+                <!-- Admin card -->
+                <div class="col-lg-4 reveal delay-3">
+                    <div class="feature-card-3d" style="border-color:rgba(245,158,11,0.15);">
+                        <div class="fc-glow" style="background:#f59e0b;"></div>
+                        <div class="fc-icon"
+                            style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);">
+                            <i class="fas fa-shield-alt" style="color:#fde68a;"></i>
                         </div>
-                        <div class="feature-card-body">
-                            <ul class="feature-list">
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Quản lý người dùng</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Quản lý đề thi</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Thống kê tổng quan</span>
-                                </li>
-                                <li>
-                                    <i class="fas fa-check"></i>
-                                    <span>Giám sát hệ thống</span>
-                                </li>
-                            </ul>
-                            <a href="pages/register.html" class="btn btn-danger w-100 rounded-pill mt-3">
-                                Quản trị <i class="fas fa-arrow-right ms-2"></i>
-                            </a>
-                        </div>
+                        <div class="fc-title">Dành cho Admin</div>
+                        <div class="fc-desc">Quản lý toàn bộ hệ thống, người dùng, đề thi và thống kê tổng quan.</div>
+                        <ul class="fc-list">
+                            <li><i class="fas fa-check text-success"></i> Quản lý người dùng hệ thống</li>
+                            <li><i class="fas fa-check text-success"></i> Kiểm soát tất cả đề thi</li>
+                            <li><i class="fas fa-check text-success"></i> Thống kê & phân tích dữ liệu</li>
+                            <li><i class="fas fa-check text-success"></i> Giám sát hệ thống realtime</li>
+                        </ul>
+                        <a href="pages/login.html" class="fc-cta" style="color:#fde68a;">
+                            Quản trị <i class="fas fa-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- How It Works Section -->
-    <section id="how-it-works" class="py-5 bg-light">
-        <div class="container py-5">
-            <div class="text-center mb-5">
-                <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">
-                    <i class="fas fa-lightbulb me-2"></i>Hướng dẫn
-                </span>
-                <h2 class="display-5 fw-bold mb-3">Cách Sử Dụng</h2>
-                <p class="lead text-muted">Đơn giản chỉ với 3 bước</p>
-            </div>
-            
-            <!-- Timeline Style -->
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="timeline-container">
-                        <!-- Step 1 -->
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-primary">
-                                <i class="fas fa-user-plus"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-badge">Bước 1</div>
-                                <h4 class="fw-bold mb-2">Đăng ký tài khoản</h4>
-                                <p class="text-muted mb-0">Chọn vai trò của bạn (Học sinh hoặc Giáo viên) và tạo tài khoản miễn phí</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Step 2 -->
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-success">
-                                <i class="fas fa-edit"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-badge">Bước 2</div>
-                                <h4 class="fw-bold mb-2">Tạo hoặc Tham gia</h4>
-                                <p class="text-muted mb-0">Giáo viên tạo đề thi với mã phòng, Học sinh nhập mã để tham gia</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Step 3 -->
-                        <div class="timeline-item">
-                            <div class="timeline-icon bg-warning">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="timeline-content">
-                                <div class="timeline-badge">Bước 3</div>
-                                <h4 class="fw-bold mb-2">Làm bài & Xem kết quả</h4>
-                                <p class="text-muted mb-0">Làm bài thi với đồng hồ đếm ngược và xem kết quả chi tiết ngay lập tức</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-white py-4">
+    <!-- ======================== STATS ======================== -->
+    <section class="stats-section" id="stats">
         <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                    <h5><i class="fas fa-graduation-cap"></i> ExamPro</h5>
-                    <p class="text-white-50 mb-0">© 2026 Online Exam System. All rights reserved.</p>
+            <div class="row g-5 text-center">
+                <div class="col-6 col-md-3 reveal">
+                    <div class="big-stat">
+                        <div class="big-stat-num" id="bigCountStudents">1,000+</div>
+                        <div class="big-stat-label">Học sinh đang sử dụng</div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-md-end">
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-facebook fa-lg"></i></a>
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-twitter fa-lg"></i></a>
-                    <a href="#" class="text-white-50 me-3"><i class="fab fa-instagram fa-lg"></i></a>
-                    <a href="#" class="text-white-50"><i class="fab fa-github fa-lg"></i></a>
+                <div class="col-6 col-md-3 reveal delay-1">
+                    <div class="big-stat">
+                        <div class="big-stat-num">500+</div>
+                        <div class="big-stat-label">Đề thi được tạo</div>
+                    </div>
                 </div>
+                <div class="col-6 col-md-3 reveal delay-2">
+                    <div class="big-stat">
+                        <div class="big-stat-num">50+</div>
+                        <div class="big-stat-label">Giáo viên tham gia</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3 reveal delay-3">
+                    <div class="big-stat">
+                        <div class="big-stat-num">99.9%</div>
+                        <div class="big-stat-label">Uptime hệ thống</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== HOW IT WORKS ======================== -->
+    <section class="how-section" id="how-it-works">
+        <div class="container">
+            <div class="text-center mb-5 reveal">
+                <div class="section-label"><i class="fas fa-map" style="font-size:0.7rem;"></i> Hướng dẫn</div>
+                <h2 class="section-title">Bắt Đầu Trong 3 Bước</h2>
+                <div class="divider"></div>
+            </div>
+            <div class="how-steps">
+                <div class="how-step reveal delay-1">
+                    <div class="step-num"
+                        style="background:rgba(99,102,241,0.1);border-color:rgba(99,102,241,0.4);color:#a5b4fc;">1</div>
+                    <div class="step-title">Đăng ký tài khoản</div>
+                    <div class="step-desc">Chọn vai trò Học sinh hoặc Giáo viên, đăng ký miễn phí trong 30 giây.</div>
+                </div>
+                <div class="how-step reveal delay-2">
+                    <div class="step-num"
+                        style="background:rgba(139,92,246,0.1);border-color:rgba(139,92,246,0.4);color:#c4b5fd;">2</div>
+                    <div class="step-title">Tạo hoặc Tham gia</div>
+                    <div class="step-desc">Giáo viên tạo đề thi, mở phòng thi. Học sinh nhập mã 6 ký tự để vào thi.
+                    </div>
+                </div>
+                <div class="how-step reveal delay-3">
+                    <div class="step-num"
+                        style="background:rgba(6,182,212,0.1);border-color:rgba(6,182,212,0.4);color:#67e8f9;">3</div>
+                    <div class="step-title">Làm bài & Xem kết quả</div>
+                    <div class="step-desc">Làm bài thi với đồng hồ đếm ngược. Xem kết quả và đáp án chi tiết ngay sau
+                        khi nộp.</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== CTA ======================== -->
+    <section class="cta-section">
+        <div class="container">
+            <div class="cta-card reveal">
+                <h2 class="cta-title">Sẵn sàng trải nghiệm<br>ExamPro chưa?</h2>
+                <p class="cta-desc">Đăng ký miễn phí hôm nay và tham gia cùng hàng nghìn học sinh, giáo viên đang sử
+                    dụng ExamPro mỗi ngày.</p>
+                <div class="cta-btns">
+                    <a href="pages/register.html" class="btn-hero-primary" style="font-size:1.05rem;padding:16px 40px;">
+                        <i class="fas fa-rocket"></i> Đăng ký miễn phí
+                    </a>
+                    <a href="pages/login.html" class="btn-hero-secondary" style="font-size:1.05rem;padding:16px 32px;">
+                        <i class="fas fa-sign-in-alt"></i> Đăng nhập
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================== FOOTER ======================== -->
+    <footer>
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-md-4">
+                    <div class="footer-brand">
+                        <span
+                            style="background:linear-gradient(135deg,#a5b4fc,#6366f1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">
+                            <i class="fas fa-graduation-cap me-2" style="-webkit-text-fill-color:#6366f1;"></i>ExamPro
+                        </span>
+                    </div>
+                    <div class="footer-desc">Nền tảng thi trắc nghiệm trực tuyến hiện đại, dành cho học sinh và giáo
+                        viên Việt Nam.</div>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="footer-heading">Sản phẩm</div>
+                    <a href="#features" class="footer-link">Tính năng</a>
+                    <a href="#how-it-works" class="footer-link">Hướng dẫn</a>
+                    <a href="#stats" class="footer-link">Thống kê</a>
+                </div>
+                <div class="col-6 col-md-2">
+                    <div class="footer-heading">Tài khoản</div>
+                    <a href="pages/login.html" class="footer-link">Đăng nhập</a>
+                    <a href="pages/register.html" class="footer-link">Đăng ký</a>
+                </div>
+                <div class="col-12 col-md-4">
+                    <div class="footer-heading">Công nghệ sử dụng</div>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">Node.js</span>
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">Express.js</span>
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">SQL
+                            Server</span>
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">Socket.IO</span>
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">Three.js</span>
+                        <span class="footer-link mb-0"
+                            style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:4px 12px;font-size:0.78rem;">JWT</span>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-copy text-center">
+                © 2026 ExamPro. Được xây dựng với ❤️ cho giáo dục Việt Nam.
             </div>
         </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+    <script>
+        // ======================== THREE.JS 3D BACKGROUND ========================
+        (function () {
+            const canvas = document.getElementById('threejs-canvas');
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            // --- Particles ---
+            const pCount = 2200;
+            const pGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(pCount * 3);
+            const colors = new Float32Array(pCount * 3);
+            const sizes = new Float32Array(pCount);
+
+            const colorPalette = [
+                new THREE.Color(0x6366f1), // indigo
+                new THREE.Color(0x8b5cf6), // violet
+                new THREE.Color(0x06b6d4), // cyan
+                new THREE.Color(0xa78bfa), // purple light
+                new THREE.Color(0xffffff), // white
+            ];
+
+            for (let i = 0; i < pCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 24;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 24;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 24;
+
+                const c = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                colors[i * 3] = c.r;
+                colors[i * 3 + 1] = c.g;
+                colors[i * 3 + 2] = c.b;
+                sizes[i] = Math.random() * 3 + 0.5;
+            }
+
+            pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            pGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            pGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const pMat = new THREE.PointsMaterial({
+                size: 0.04,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.75,
+                sizeAttenuation: true,
+            });
+
+            const particles = new THREE.Points(pGeo, pMat);
+            scene.add(particles);
+
+            // --- Floating geometric shapes ---
+            const shapes = [];
+            const shapeGeos = [
+                new THREE.OctahedronGeometry(0.25),
+                new THREE.TetrahedronGeometry(0.25),
+                new THREE.IcosahedronGeometry(0.2),
+                new THREE.OctahedronGeometry(0.18),
+                new THREE.TetrahedronGeometry(0.3),
+            ];
+            const shapeColors = [0x6366f1, 0x8b5cf6, 0x06b6d4, 0xa78bfa, 0x6366f1];
+
+            for (let i = 0; i < 12; i++) {
+                const geo = shapeGeos[i % shapeGeos.length];
+                const mat = new THREE.MeshBasicMaterial({
+                    color: shapeColors[i % shapeColors.length],
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.25,
+                });
+                const mesh = new THREE.Mesh(geo, mat);
+                mesh.position.set(
+                    (Math.random() - 0.5) * 18,
+                    (Math.random() - 0.5) * 14,
+                    (Math.random() - 0.5) * 8 - 3,
+                );
+                mesh.userData = {
+                    rotX: (Math.random() - 0.5) * 0.012,
+                    rotY: (Math.random() - 0.5) * 0.012,
+                    floatSpeed: Math.random() * 0.008 + 0.003,
+                    floatOffset: Math.random() * Math.PI * 2,
+                    originY: mesh.position.y,
+                };
+                scene.add(mesh);
+                shapes.push(mesh);
+            }
+
+            // --- Lines / connections ---
+            const lineMat = new THREE.LineBasicMaterial({
+                color: 0x6366f1, transparent: true, opacity: 0.08,
+            });
+            for (let i = 0; i < 18; i++) {
+                const lGeo = new THREE.BufferGeometry().setFromPoints([
+                    new THREE.Vector3((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 6 - 2),
+                    new THREE.Vector3((Math.random() - 0.5) * 20, (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 6 - 2),
+                ]);
+                scene.add(new THREE.Line(lGeo, lineMat));
+            }
+
+            // --- Mouse parallax ---
+            let mouseX = 0, mouseY = 0;
+            let targetX = 0, targetY = 0;
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+                mouseY = -(e.clientY / window.innerHeight - 0.5) * 2;
+            });
+
+            // --- Resize ---
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // --- Animate ---
+            const clock = new THREE.Clock();
+            function animate() {
+                requestAnimationFrame(animate);
+                const elapsed = clock.getElapsedTime();
+
+                // Lerp camera to mouse
+                targetX += (mouseX * 0.3 - targetX) * 0.05;
+                targetY += (mouseY * 0.2 - targetY) * 0.05;
+                camera.position.x = targetX;
+                camera.position.y = targetY;
+                camera.lookAt(scene.position);
+
+                // Rotate particles
+                particles.rotation.y = elapsed * 0.025;
+                particles.rotation.x = elapsed * 0.01;
+
+                // Animate shapes
+                shapes.forEach(s => {
+                    s.rotation.x += s.userData.rotX;
+                    s.rotation.y += s.userData.rotY;
+                    s.position.y = s.userData.originY + Math.sin(elapsed * s.userData.floatSpeed * 100 + s.userData.floatOffset) * 0.4;
+                });
+
+                renderer.render(scene, camera);
+            }
+            animate();
+        })();
+
+        // ======================== NAVBAR SCROLL ========================
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        // ======================== SCROLL REVEAL ========================
+        const revealEls = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        revealEls.forEach(el => observer.observe(el));
+
+        // ======================== COUNTER ANIMATION ========================
+        function animateCount(el, target, duration = 1800) {
+            let start = 0; const step = target / (duration / 16);
+            const timer = setInterval(() => {
+                start += step;
+                if (start >= target) { el.textContent = target.toLocaleString(); clearInterval(timer); }
+                else el.textContent = Math.floor(start).toLocaleString();
+            }, 16);
+        }
+        const countObs = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    animateCount(document.getElementById('countStudents'), 1200);
+                    animateCount(document.getElementById('countExams'), 500);
+                    animateCount(document.getElementById('countTeachers'), 50);
+                    countObs.disconnect();
+                }
+            });
+        }, { threshold: 0.5 });
+        countObs.observe(document.querySelector('.hero-stats'));
+
+        // ======================== PREVIEW TIMER ========================
+        let previewSec = 32 * 60 + 47;
+        setInterval(() => {
+            previewSec--;
+            if (previewSec < 0) previewSec = 45 * 60;
+            const m = Math.floor(previewSec / 60);
+            const s = previewSec % 60;
+            const el = document.getElementById('previewTimer');
+            if (el) el.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }, 1000);
+    </script>
 </body>
+
 </html>

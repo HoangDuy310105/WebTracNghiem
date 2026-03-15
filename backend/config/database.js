@@ -15,7 +15,7 @@ const sequelize = new Sequelize(
         trustServerCertificate: true
       }
     },
-    logging: false,
+    logging: false, // Tắt logging để tránh lỗi
     pool: {
       max: 5,
       min: 0,
@@ -30,11 +30,13 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Kết nối SQL Server thành công!');
     
-    // Sync models (development only)
-    if (process.env.NODE_ENV === 'development') {
-      await sequelize.sync({ alter: false });
-      console.log('✅ Database đã đồng bộ!');
-    }
+    // Sync models (development only) - TẠM THỜI TẮT ĐỂ TEST
+    // if (process.env.NODE_ENV === 'development') {
+    //   await sequelize.sync({ alter: false });
+    //   console.log('✅ Database đã đồng bộ!');
+    // }
+    
+    console.log('⚠️  Đang chạy ở chế độ NO SYNC - cần tạo tables manually');
   } catch (error) {
     console.error('❌ Lỗi kết nối database:', error.message);
     console.error('');

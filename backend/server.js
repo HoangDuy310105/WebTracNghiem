@@ -12,6 +12,8 @@ const path = require('path');
 const dotenv = require('dotenv');
 const { Server } = require('socket.io');
 const http = require('http');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 // Load environment variables
 dotenv.config();
@@ -19,13 +21,16 @@ dotenv.config();
 // Import database connection
 const { connectDB } = require('./config/database');
 
-// Import routes
-// TODO: Uncomment khi đã tạo xong các route files
-// const authRoutes = require('./routes/auth');
-// const examRoutes = require('./routes/exams');
-// const roomRoutes = require('./routes/rooms');
-// const resultRoutes = require('./routes/results');
-// const adminRoutes = require('./routes/admin');
+// Import middleware classes (OOP)
+const ErrorHandler = require('./middleware/errorHandler');
+const Logger = require('./utils/logger');
+
+// Import routes (OOP)
+const authRoutes = require('./routes/auth');
+const examRoutes = require('./routes/exams');
+const roomRoutes = require('./routes/rooms');
+const resultRoutes = require('./routes/results');
+const adminRoutes = require('./routes/admin');
 
 // Initialize Express app
 const app = express();
@@ -49,13 +54,19 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (Frontend)
 app.use(express.static(path.join(__dirname, '../frontend')));
 
-// API Routes
-// TODO: Uncomment khi đã tạo xong routes
-// app.use('/api/auth', authRoutes);
-// app.use('/api/exams', examRoutes);
-// app.use('/api/rooms', roomRoutes);
-// app.use('/api/results', resultRoutes);
-// app.use('/api/admin', adminRoutes);
+// API Routes (OOP Class-based Controllers)
+app.use('/api/auth', authRoutes);
+app.use('/api/exams', examRoutes);
+app.use('/api/rooms', roomRoutes);
+app.use('/api/results', resultRoutes);
+app.use('/api/admin', adminRoutes);
+
+// Swagger API Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+  customCss: '.swagger-ui .topbar { display: none }',
+  customSiteTitle: 'ExamPro API Docs',
+  customfavIcon: '/favicon.ico'
+}));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -73,12 +84,12 @@ app.get('*', (req, res) => {
 
 // Socket.io - Real-time functionality
 io.on('connection', (socket) => {
-  console.log('👤 User connected:', socket.id);
+  Logger.info(`User connected: ${socket.id}`);
 
   // Join exam room
   socket.on('join-room', (roomCode) => {
     socket.join(roomCode);
-    console.log(`👤 User ${socket.id} joined room: ${roomCode}`);
+    Logger.info(`User ${socket.id} joined room: ${roomCode}`);
     io.to(roomCode).emit('user-joined', {
       message: 'A student has joined the room'
     });
@@ -102,18 +113,13 @@ io.on('connection', (socket) => {
 
   // Disconnect
   socket.on('disconnect', () => {
-    console.log('👤 User disconnected:', socket.id);
+    Logger.info(`User disconnected: ${socket.id}`);
   });
 });
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error('❌ Error:', err.stack);
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || 'Internal Server Error'
-  });
-});
+// Error handling middleware (OOP)
+app.use(ErrorHandler.notFound);
+app.use(ErrorHandler.handleError);
 
 // Start server
 const PORT = process.env.PORT || 5000;
