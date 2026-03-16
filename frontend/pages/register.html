@@ -7,119 +7,186 @@
     <title>Đăng Ký - ExamPro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/dark-theme.css">
+    <style>
+        .visual-decor {
+            width: 140px;
+            height: 140px;
+            background: linear-gradient(135deg, var(--accent), var(--secondary));
+            border-radius: 35px;
+            margin: 0 auto 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            color: white;
+            box-shadow: 0 20px 50px rgba(6, 182, 212, 0.35);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .role-option-card {
+            flex: 1;
+            padding: 24px 16px;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            background: rgba(255, 255, 255, 0.02);
+            position: relative;
+        }
+
+        .role-option-card i {
+            display: block;
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            color: var(--text-3);
+            transition: color 0.3s;
+        }
+
+        .role-option-card span {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-2);
+        }
+
+        input[type="radio"]:checked + .role-option-card {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        input[type="radio"]:checked + .role-option-card i {
+            color: var(--primary);
+        }
+
+        input[type="radio"]:checked + .role-option-card span {
+            color: white;
+        }
+    </style>
 </head>
 
 <body>
-    <div class="page-bg"></div>
-
-    <div
-        style="position:fixed;top:-80px;left:-80px;width:360px;height:360px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,0.13),transparent 70%);pointer-events:none;z-index:0;">
-    </div>
-    <div
-        style="position:fixed;bottom:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.1),transparent 70%);pointer-events:none;z-index:0;">
-    </div>
-
-    <div class="auth-wrapper">
-        <div style="position:relative;z-index:1;width:100%;max-width:480px;">
-            <a href="../index.html"
-                style="display:inline-flex;align-items:center;gap:8px;color:var(--text-3);font-size:0.82rem;font-weight:600;text-decoration:none;margin-bottom:24px;transition:color 0.2s;"
-                onmouseover="this.style.color='var(--text-2)'" onmouseout="this.style.color='var(--text-3)'">
-                <i class="fas fa-arrow-left"></i> Về trang chủ
-            </a>
-
-            <div class="auth-card" style="max-width:480px;">
-                <div class="auth-logo"><i class="fas fa-user-plus"></i></div>
-                <div class="auth-title">Tạo tài khoản</div>
-                <div class="auth-sub">Tham gia <strong style="color:var(--text-2);">ExamPro</strong> miễn phí ngay hôm
-                    nay</div>
-
-                <div id="alertBox"
-                    style="display:none;padding:12px 16px;border-radius:10px;margin-bottom:20px;font-size:0.84rem;font-weight:500;">
+    <div class="split-wrapper">
+        <!-- Left Side: Visual Experience -->
+        <div class="split-visual" style="background: linear-gradient(135deg, var(--bg-1), #080c14);">
+            <div class="split-visual-content" style="animation: slideInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="visual-decor">
+                    <i class="fas fa-user-plus"></i>
                 </div>
-
-                <!-- Role Selector -->
-                <div class="mb-form">
-                    <label class="form-label">Bạn muốn tham gia với vai trò?</label>
-                    <div class="role-selector">
-                        <input type="radio" class="role-option" name="roleOpt" id="rStudent" value="student" checked>
-                        <label class="role-label" for="rStudent">
-                            <i class="fas fa-user-graduate" style="color:#a5b4fc;"></i>
-                            Học sinh
-                        </label>
-                        <input type="radio" class="role-option" name="roleOpt" id="rTeacher" value="teacher">
-                        <label class="role-label" for="rTeacher">
-                            <i class="fas fa-chalkboard-teacher" style="color:#6ee7b7;"></i>
-                            Giáo viên
-                        </label>
+                <h2 style="font-size: 2.4rem; font-weight: 900; line-height: 1.2; margin-bottom: 24px;">Kiến tạo tương lai cùng công nghệ <span style="background: linear-gradient(135deg, var(--accent), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">ExamPro</span></h2>
+                <p style="color: var(--text-2); font-size: 1.1rem; line-height: 1.7; opacity: 0.8;">Hàng ngàn giáo viên và học sinh đã tin dùng. Đăng ký ngay để trải nghiệm sự khác biệt.</p>
+                
+                <div style="margin-top: 48px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: left;">
+                    <div>
+                        <h4 style="color: white; font-size: 1rem; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-check-circle" style="color:var(--success); margin-right: 8px;"></i> Thông minh</h4>
+                        <p style="color: var(--text-3); font-size: 0.85rem;">Phân tích kết quả học tập tự động bằng AI.</p>
                     </div>
-                    <input type="hidden" id="role" value="student">
+                    <div>
+                        <h4 style="color: white; font-size: 1rem; font-weight: 700; margin-bottom: 10px;"><i class="fas fa-check-circle" style="color:var(--success); margin-right: 8px;"></i> Tiện lợi</h4>
+                        <p style="color: var(--text-3); font-size: 0.85rem;">Truy cập thi mọi lúc, mọi nơi trên mọi thiết bị.</p>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Interaction -->
+        <div class="split-form">
+            <div style="width: 100%; max-width: 480px; animation: slideInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="mb-5">
+                    <h1 style="font-size: 2rem; font-weight: 900; margin-bottom: 8px;">Đăng ký tài khoản</h1>
+                    <p style="color: var(--text-3); font-size: 0.95rem;">Hoàn toàn miễn phí, chỉ mất 30 giây.</p>
+                </div>
+
+                <div id="alertBox" style="display:none;padding:14px 16px;border-radius:12px;margin-bottom:24px;font-size:0.88rem;font-weight:600;"></div>
 
                 <form id="registerForm">
-                    <div class="mb-form">
+                    <!-- Role Selection -->
+                    <div style="margin-bottom: 28px;">
+                        <label class="form-label" style="display:block;margin-bottom:14px;font-weight:700;">Bạn là ai?</label>
+                        <div style="display:flex; gap:16px;">
+                            <label style="flex:1;">
+                                <input type="radio" name="roleOpt" value="student" style="display:none;" id="rStudent" checked>
+                                <div class="role-option-card">
+                                    <i class="fas fa-user-graduate"></i>
+                                    <span>Học sinh</span>
+                                </div>
+                            </label>
+                            <label style="flex:1;">
+                                <input type="radio" name="roleOpt" value="teacher" style="display:none;" id="rTeacher">
+                                <div class="role-option-card">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                    <span>Giáo viên</span>
+                                </div>
+                            </label>
+                        </div>
+                        <input type="hidden" id="role" value="student">
+                    </div>
+
+                    <div class="mb-form" style="margin-bottom: 18px;">
                         <label class="form-label">Họ và tên</label>
                         <div class="input-group">
                             <i class="fas fa-user input-icon"></i>
-                            <input type="text" id="fullName" class="form-input" placeholder="Nguyễn Văn A" required
-                                autocomplete="name">
+                            <input type="text" id="fullName" class="form-input" placeholder="Nguyễn Văn A" required>
                         </div>
                     </div>
 
-                    <div class="mb-form">
+                    <div class="mb-form" style="margin-bottom: 18px;">
                         <label class="form-label">Email</label>
                         <div class="input-group">
                             <i class="fas fa-envelope input-icon"></i>
-                            <input type="email" id="email" class="form-input" placeholder="example@email.com" required
-                                autocomplete="email">
+                            <input type="email" id="email" class="form-input" placeholder="example@email.com" required>
                         </div>
                     </div>
 
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;" class="mb-form">
-                        <div>
+                    <div class="row" style="display:flex; gap:16px; margin-bottom: 18px;">
+                        <div style="flex:1;">
                             <label class="form-label">Mật khẩu</label>
                             <div class="input-group">
                                 <i class="fas fa-lock input-icon"></i>
-                                <input type="password" id="password" class="form-input" placeholder="Tối thiểu 6 ký tự"
-                                    required minlength="6" style="padding-right:44px;">
+                                <input type="password" id="password" class="form-input" placeholder="••••••••" required>
                             </div>
                         </div>
-                        <div>
+                        <div style="flex:1;">
                             <label class="form-label">Xác nhận</label>
                             <div class="input-group">
                                 <i class="fas fa-lock input-icon"></i>
-                                <input type="password" id="confirmPassword" class="form-input" placeholder="Nhập lại"
-                                    required>
+                                <input type="password" id="confirmPassword" class="form-input" placeholder="••••••••" required>
                             </div>
                         </div>
                     </div>
 
                     <!-- Password strength -->
-                    <div class="mb-form">
-                        <div class="pwd-strength-bars" id="pwdBars">
-                            <div class="pwd-bar" id="pb1"></div>
-                            <div class="pwd-bar" id="pb2"></div>
-                            <div class="pwd-bar" id="pb3"></div>
-                            <div class="pwd-bar" id="pb4"></div>
+                    <div id="pwdStrength" style="margin-bottom: 32px; display:none;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                            <span style="font-size:0.75rem; color:var(--text-3);">Mật khẩu</span>
+                            <span id="pwdLabel" style="font-size:0.75rem; font-weight:700;">-</span>
                         </div>
-                        <div style="font-size:0.72rem;margin-top:5px;color:var(--text-3);" id="pwdTxt">Nhập mật khẩu để
-                            kiểm tra độ mạnh</div>
+                        <div style="height:4px; background:rgba(255,255,255,0.06); border-radius:2px; display:flex; gap:4px;">
+                            <div id="bar1" style="flex:1; height:100%; border-radius:1px; background:var(--border-2); transition: 0.3s;"></div>
+                            <div id="bar2" style="flex:1; height:100%; border-radius:1px; background:var(--border-2); transition: 0.3s;"></div>
+                            <div id="bar3" style="flex:1; height:100%; border-radius:1px; background:var(--border-2); transition: 0.3s;"></div>
+                            <div id="bar4" style="flex:1; height:100%; border-radius:1px; background:var(--border-2); transition: 0.3s;"></div>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="regBtn">
-                        <i class="fas fa-user-plus"></i> Đăng ký
+                    <button type="submit" class="btn btn-primary btn-full btn-lg" id="regBtn" style="margin-bottom: 24px;">
+                        Xác nhận đăng ký <i class="fas fa-arrow-right"></i>
                     </button>
 
-                    <div style="text-align:center;margin-top:20px;">
-                        <span style="font-size:0.85rem;color:var(--text-3);">Đã có tài khoản? </span>
-                        <a href="login.html"
-                            style="font-size:0.85rem;font-weight:700;color:#a5b4fc;text-decoration:none;">Đăng nhập</a>
+                    <div style="text-align:center;">
+                        <span style="font-size:0.9rem;color:var(--text-3);">Đã có tài khoản? </span>
+                        <a href="login.html" style="font-size:0.9rem;font-weight:700;color:var(--primary);text-decoration:none;">Đăng nhập ngay</a>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
-    <div class="toast-stack" id="toastStack"></div>
 
     <script src="../js/auth.js"></script>
     <script>
@@ -128,21 +195,30 @@
             r.addEventListener('change', () => { document.getElementById('role').value = r.value; });
         });
 
-        // Password strength
-        const bars = ['pb1', 'pb2', 'pb3', 'pb4'].map(id => document.getElementById(id));
-        const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
-        const labels = ['Quá yếu', 'Yếu', 'Trung bình', 'Mạnh'];
-        document.getElementById('password').addEventListener('input', function () {
-            const v = this.value;
+        // Simple strength checker
+        const pwd = document.getElementById('password');
+        const label = document.getElementById('pwdLabel');
+        const strengthArea = document.getElementById('pwdStrength');
+        const bars = [document.getElementById('bar1'), document.getElementById('bar2'), document.getElementById('bar3'), document.getElementById('bar4')];
+        
+        pwd.addEventListener('input', () => {
+            const val = pwd.value;
+            if(!val) { strengthArea.style.display = 'none'; return; }
+            strengthArea.style.display = 'block';
             let s = 0;
-            if (v.length >= 6) s++;
-            if (v.length >= 10) s++;
-            if (/[A-Z]/.test(v) && /[0-9]/.test(v)) s++;
-            if (/[!@#$%^&*]/.test(v)) s++;
-            bars.forEach((b, i) => { b.style.background = i < s ? colors[s - 1] : 'var(--border-2)'; });
-            const txt = document.getElementById('pwdTxt');
-            txt.textContent = v ? (labels[s - 1] || 'Quá yếu') : 'Nhập mật khẩu để kiểm tra độ mạnh';
-            txt.style.color = v ? colors[s - 1] || '#ef4444' : 'var(--text-3)';
+            if(val.length >= 6) s++;
+            if(val.length >= 10) s++;
+            if(/[A-Z]/.test(val) && /[0-9]/.test(val)) s++;
+            if(/[^A-Za-z0-9]/.test(val)) s++;
+
+            const colors = ['#ef4444', '#f59e0b', '#3b82f6', '#10b981'];
+            const labels = ['Yếu', 'Trung bình', 'Mạnh', 'Cực mạnh'];
+            
+            bars.forEach((b, i) => {
+                b.style.background = i < s ? colors[s-1] : 'rgba(255,255,255,0.06)';
+            });
+            label.innerText = labels[s-1] || 'Quá ngắn';
+            label.style.color = colors[s-1] || '#999';
         });
     </script>
 </body>
