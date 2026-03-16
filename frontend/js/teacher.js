@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // ============== CLOCK UPDATE ==============
 function updateClock() {
-    const clockElement = document.getElementById('currentTime');
+    const clockElement = document.getElementById('clock'); // Fix ID to match HTML
     if (clockElement) {
         const now = new Date();
         clockElement.textContent = now.toLocaleTimeString('vi-VN');
@@ -45,133 +45,247 @@ function updateClock() {
 
 // ============== SETUP EVENT LISTENERS ==============
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('[data-page]').forEach(link => {
-        link.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.getAttribute('data-page');
-            navigateToPage(page);
-        });
-    });
-}
-
-// ============== NAVIGATION ==============
-function navigateToPage(page) {
-    // Hide all content sections
-    document.querySelectorAll('[id$="Content"]').forEach(section => {
-        section.classList.add('d-none');
-    });
-
-    // Remove active class from all nav links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
-    });
-
-    // Show selected content
-    const contentElement = document.getElementById(page + 'Content');
-    if (contentElement) {
-        contentElement.classList.remove('d-none');
-    }
-
-    // Add active class to clicked link
-    const activeLink = document.querySelector(`[data-page="${page}"]`);
-    if (activeLink) {
-        activeLink.classList.add('active');
-    }
-
-    // Load page content
-    switch (page) {
-        case 'dashboard':
-            loadDashboard();
-            break;
-        case 'my-exams':
-            loadMyExams();
-            break;
-        case 'create-exam':
-            showCreateExamForm();
-            break;
-        case 'my-rooms':
-            loadMyRooms();
-            break;
-        case 'create-room':
-            showCreateRoomForm();
-            break;
-        case 'profile':
-            // TODO: Load profile
-            break;
-    }
+    // Navigation handling is also done in inline script in HTML, but we keep this for consistency if needed
+    // The provided HTML uses showPage() function globally.
 }
 
 // ============== LOAD DASHBOARD ==============
 async function loadDashboard() {
-    // TODO: Implement dashboard loading
-    console.log('Loading teacher dashboard...');
-    
-    // Example:
-    // Load statistics: total exams, rooms, students, submissions
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        // Load summary stats (Simplified for now)
+        const [examsRes, roomsRes] = await Promise.all([
+            fetch(`${API_URL}/exams`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${API_URL}/rooms`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+
+        const examsData = await examsRes.json();
+        const roomsData = await roomsRes.json();
+
+        if (examsData.success) {
+            document.getElementById('st-exams').textContent = examsData.data.pagination.total;
+            renderRecentExams(examsData.data.exams.slice(0, 5));
+        }
+        if (roomsData.success) {
+            document.getElementById('st-rooms').textContent = roomsData.data.pagination.total;
+        }
+
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    }
 }
 
-// ============== CREATE EXAM ==============
-function showCreateExamForm() {
-    // TODO: Implement create exam form
-    console.log('Showing create exam form...');
-    
-    // Create dynamic form
-    // Add question fields
-    // Handle add/remove questions
-    // Validate and submit
+function renderRecentExams(exams) {
+    const tableBody = document.getElementById('recentExamsTable');
+    if (!tableBody) return;
+
+    if (exams.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><h6>Chưa có đề thi</h6></div></td></tr>';
+        return;
+    }
+
+    tableBody.innerHTML = exams.map(exam => `
+        <tr>
+            <td>${exam.title}</td>
+            <td>${exam.totalQuestions}</td>
+            <td>${exam.duration} phút</td>
+            <td><span class="badge ${exam.isActive ? 'badge-success' : 'badge-danger'}">${exam.isActive ? 'Active' : 'Draft'}</span></td>
+            <td>
+                <button class="btn btn-ghost btn-sm" title="Sửa"><i class="fas fa-edit"></i></button>
+            </td>
+        </tr>
+    `).join('');
 }
 
-function addQuestion() {
-    // TODO: Add new question field
-}
-
-function removeQuestion(questionId) {
-    // TODO: Remove question field
-}
-
-async function submitExam(examData) {
-    // TODO: Submit exam to server
-    console.log('Submitting exam:', examData);
-}
-
-// ============== LOAD MY EXAMS ==============
+// ============== MY EXAMS ==============
 async function loadMyExams() {
-    // TODO: Load all exams created by this teacher
-    console.log('Loading my exams...');
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/exams`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        const tableBody = document.getElementById('examsTable');
+        if (!tableBody) return;
+
+        if (data.success && data.data.exams.length > 0) {
+            tableBody.innerHTML = data.data.exams.map((exam, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${exam.title}</td>
+                    <td>${exam.totalQuestions}</td>
+                    <td>${exam.duration} phút</td>
+                    <td>${new Date(exam.createdAt).toLocaleDateString('vi-VN')}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-ghost btn-sm text-danger"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    } catch (error) {
+        console.error('Error loading exams:', error);
+    }
 }
 
 // ============== CREATE ROOM ==============
-function showCreateRoomForm() {
-    // TODO: Show create room form
-    console.log('Showing create room form...');
+let availableExams = [];
+
+async function showCreateRoomForm() {
+    const examSelect = document.getElementById('roomExam');
+    if (!examSelect) return;
+
+    // Reset preview code
+    refreshPreviewCode();
+
+    // Set default times (Start now, end in 1 hour)
+    const now = new Date();
+    const future = new Date(now.getTime() + 60 * 60 * 1000);
     
-    // Load available exams
-    // Generate room code
-    // Set start/end time
-    // Submit
+    document.getElementById('roomStart').value = now.toISOString().slice(0, 16);
+    document.getElementById('roomEnd').value = future.toISOString().slice(0, 16);
+
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/exams`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            availableExams = data.data.exams;
+            examSelect.innerHTML = '<option value="">-- Chọn đề thi --</option>' + 
+                availableExams.map(ex => `<option value="${ex.id}" data-duration="${ex.duration}">${ex.title} (${ex.duration} phút)</option>`).join('');
+        }
+    } catch (error) {
+        console.error('Error fetching exams for room:', error);
+    }
 }
 
-function generateRoomCode() {
-    // TODO: Generate random room code (6 characters)
-    return Math.random().toString(36).substring(2, 8).toUpperCase();
+function refreshPreviewCode() {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const previewEl = document.getElementById('previewCode');
+    if (previewEl) previewEl.textContent = code;
 }
 
-async function submitRoom(roomData) {
-    // TODO: Submit room to server
-    console.log('Creating room:', roomData);
+// Auto calculate end time based on start time and exam duration
+document.getElementById('roomExam')?.addEventListener('change', updateEndTime);
+document.getElementById('roomStart')?.addEventListener('change', updateEndTime);
+
+function updateEndTime() {
+    const examSelect = document.getElementById('roomExam');
+    const startInput = document.getElementById('roomStart');
+    const endInput = document.getElementById('roomEnd');
+
+    if (!examSelect.value || !startInput.value) return;
+
+    const selectedOption = examSelect.options[examSelect.selectedIndex];
+    const duration = parseInt(selectedOption.getAttribute('data-duration'));
+    
+    if (duration) {
+        const startTime = new Date(startInput.value);
+        const endTime = new Date(startTime.getTime() + duration * 60000);
+        endInput.value = endTime.toISOString().slice(0, 16);
+    }
 }
 
-// ============== LOAD MY ROOMS ==============
+document.getElementById('createRoomForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const examId = document.getElementById('roomExam').value;
+    const startTime = document.getElementById('roomStart').value;
+    const endTime = document.getElementById('roomEnd').value;
+
+    if (!examId || !startTime || !endTime) {
+        alert('Vui lòng điền đầy đủ thông tin');
+        return;
+    }
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${API_URL}/rooms`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                examId,
+                startTime: new Date(startTime).toISOString(),
+                endTime: new Date(endTime).toISOString(),
+                maxParticipants: 100 // Default
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Tạo phòng thi thành công! Mã phòng: ' + data.data.roomCode);
+            // Switch to my rooms page
+            if (window.showPage) {
+                showPage('my-rooms');
+                loadMyRooms();
+            }
+        } else {
+            alert('Lỗi: ' + (data.message || 'Không thể tạo phòng'));
+        }
+    } catch (error) {
+        console.error('Create room error:', error);
+        alert('Lỗi kết nối server');
+    }
+});
+
+// ============== MY ROOMS ==============
 async function loadMyRooms() {
-    // TODO: Load all rooms created by this teacher
-    console.log('Loading my rooms...');
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/rooms`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        const tableBody = document.getElementById('roomsTable');
+        if (!tableBody) return;
+
+        if (data.success && data.data.rooms.length > 0) {
+            tableBody.innerHTML = data.data.rooms.map(room => `
+                <tr>
+                    <td><strong>${room.roomCode}</strong></td>
+                    <td>${room.exam ? room.exam.title : 'N/A'}</td>
+                    <td>${new Date(room.startTime).toLocaleString('vi-VN')}</td>
+                    <td>${new Date(room.endTime).toLocaleString('vi-VN')}</td>
+                    <td><span class="badge badge-${getStatusColor(room.status)}">${room.status.toUpperCase()}</span></td>
+                    <td>${room.currentParticipants}/${room.maxParticipants}</td>
+                    <td>
+                        <button class="btn btn-ghost btn-sm" onclick="viewRoomResults(${room.id})"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-ghost btn-sm text-danger"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+             tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><h6>Chưa có phòng thi</h6></div></td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading rooms:', error);
+    }
+}
+
+function getStatusColor(status) {
+    switch (status) {
+        case 'active': return 'success';
+        case 'pending': return 'warning';
+        case 'completed': return 'primary';
+        case 'cancelled': return 'danger';
+        default: return 'secondary';
+    }
 }
 
 // ============== VIEW RESULTS ==============
 async function viewRoomResults(roomId) {
-    // TODO: View all results for a specific room
     console.log('Viewing results for room:', roomId);
+    // TODO: Implement result viewing page or modal
 }
 
 // ============== SETUP LOGOUT ==============
@@ -185,15 +299,6 @@ function setupLogout() {
             }
         });
     }
-}
-
-// ============== HELPER FUNCTIONS ==============
-function showLoading() {
-    document.getElementById('loadingOverlay')?.classList.remove('d-none');
-}
-
-function hideLoading() {
-    document.getElementById('loadingOverlay')?.classList.add('d-none');
 }
 
 function logout() {

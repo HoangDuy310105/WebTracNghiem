@@ -347,12 +347,14 @@
 
                                     <!-- Generated code preview -->
                                     <div class="room-code-block mb-form">
-                                        <div
-                                            style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
-                                            Mã phòng thi</div>
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                            <div style="font-size:0.72rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;">Mã phòng thi</div>
+                                            <button type="button" class="btn btn-ghost btn-xs" onclick="refreshPreviewCode()" style="padding:2px 8px;font-size:0.7rem;">
+                                                <i class="fas fa-sync-alt"></i> Làm mới
+                                            </button>
+                                        </div>
                                         <div class="room-code-value" id="previewCode">ABC123</div>
-                                        <div style="font-size:0.78rem;color:var(--text-3);margin-top:10px;">Mã sẽ được
-                                            tạo tự động khi lưu</div>
+                                        <div style="font-size:0.78rem;color:var(--text-3);margin-top:10px;">Mã này sẽ được xác nhận khi bạn lưu phòng</div>
                                     </div>
 
                                     <div style="display:flex;gap:12px;">
@@ -449,6 +451,12 @@
             pages.forEach(p => { document.getElementById('pg-' + p).style.display = p === name ? '' : 'none'; });
             document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
             document.getElementById('pageTitle').textContent = titles[name] || name;
+
+            // Trigger data loading based on page
+            if (name === 'dashboard') loadDashboard();
+            if (name === 'my-exams') loadMyExams();
+            if (name === 'my-rooms') loadMyRooms();
+            if (name === 'create-room') showCreateRoomForm();
         }
         document.querySelectorAll('.nav-item[data-page]').forEach(el => {
             el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
