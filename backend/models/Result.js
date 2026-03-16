@@ -85,13 +85,15 @@ module.exports = (sequelize) => {
     // Result thuộc về Student
     Result.belongsTo(models.User, {
       foreignKey: 'studentId',
-      as: 'student'
+      as: 'student',
+      onDelete: 'NO ACTION'
     });
 
     // Result thuộc về Room (exam info có thể lấy qua room.exam)
     Result.belongsTo(models.ExamRoom, {
       foreignKey: 'roomId',
-      as: 'room'
+      as: 'room',
+      onDelete: 'NO ACTION'
     });
   };
 

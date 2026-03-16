@@ -71,7 +71,8 @@ module.exports = (sequelize) => {
     // Student có nhiều Result
     User.hasMany(models.Result, {
       foreignKey: 'studentId',
-      as: 'results'
+      as: 'results',
+      onDelete: 'NO ACTION'
     });
   };
 
