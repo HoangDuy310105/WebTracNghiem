@@ -30,11 +30,10 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Kết nối SQL Server thành công!');
     
-    // Sync models (development only) - TẠM THỜI TẮT ĐỂ TEST
-    // if (process.env.NODE_ENV === 'development') {
-    //   await sequelize.sync({ alter: false });
-    //   console.log('✅ Database đã đồng bộ!');
-    // }
+    // Sync models
+    // process.env.NODE_ENV === 'development'
+    // await sequelize.sync({ force: true });
+    console.log('✅ Database đã đồng bộ!');
     
     console.log('⚠️  Đang chạy ở chế độ NO SYNC - cần tạo tables manually');
   } catch (error) {
