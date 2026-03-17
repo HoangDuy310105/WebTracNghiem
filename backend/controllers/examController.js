@@ -1,11 +1,19 @@
 // =====================================================
-// EXAM CONTROLLER CLASS - QUẢN LÝ ĐỀ THI (OOP)
+// EXAM CONTROLLER CLASS - HTTP handler (thin), gọi ExamService
 // =====================================================
 
-const { Exam, Question, User } = require('../models');
 const { HTTP_STATUS, MESSAGES } = require('../utils/constants');
 const HelperUtils = require('../utils/helpers');
 const Logger = require('../utils/logger');
+const ExamService = require('../Services/ExamService');
+
+const TYPE_TO_STATUS = {
+  CONFLICT: HTTP_STATUS.CONFLICT,
+  UNAUTHORIZED: HTTP_STATUS.UNAUTHORIZED,
+  FORBIDDEN: HTTP_STATUS.FORBIDDEN,
+  NOT_FOUND: HTTP_STATUS.NOT_FOUND,
+  BAD_REQUEST: HTTP_STATUS.BAD_REQUEST
+};
 
 class ExamController {
   /**
@@ -15,55 +23,16 @@ class ExamController {
   static async getExams(req, res) {
     try {
       const { page = 1, limit = 10, search = '' } = req.query;
-      const { offset, limit: pageLimit } = HelperUtils.getPagination(page, limit);
-
-      const whereClause = {};
-      
-      // Nếu là teacher, chỉ lấy đề thi của mình
-      if (req.user.role === 'teacher') {
-        whereClause.teacherId = req.user.id;
-      }
-
-      // Tìm kiếm theo title
-      if (search) {
-        whereClause.title = { [require('sequelize').Op.like]: `%${search}%` };
-      }
-
-      const { count, rows } = await Exam.findAndCountAll({
-        where: whereClause,
-        include: [
-          {
-            model: User,
-            as: 'teacher',
-            attributes: ['id', 'fullName', 'email']
-          },
-          {
-            model: Question,
-            as: 'questions',
-            attributes: ['id']
-          }
-        ],
-        offset,
-        limit: pageLimit,
-        order: [['createdAt', 'DESC']]
-      });
-
-      res.status(HTTP_STATUS.OK).json(
-        HelperUtils.successResponse('Thành công', {
-          exams: rows,
-          pagination: {
-            total: count,
-            page: parseInt(page),
-            limit: pageLimit,
-            totalPages: Math.ceil(count / pageLimit)
-          }
-        })
-      );
+      const data = await ExamService.getExams({ page, limit, search, user: req.user });
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse('Thành công', data));
     } catch (error) {
+      if (error.type) {
+        return res.status(TYPE_TO_STATUS[error.type] || HTTP_STATUS.BAD_REQUEST).json(
+          HelperUtils.errorResponse(error.message)
+        );
+      }
       Logger.error('Get exams error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
-      );
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
     }
   }
 
@@ -73,37 +42,16 @@ class ExamController {
    */
   static async getExamById(req, res) {
     try {
-      const { id } = req.params;
-
-      const exam = await Exam.findByPk(id, {
-        include: [
-          {
-            model: User,
-            as: 'teacher',
-            attributes: ['id', 'fullName', 'email']
-          },
-          {
-            model: Question,
-            as: 'questions',
-            attributes: { exclude: ['correctAnswer'] } // Ẩn đáp án đúng khi xem
-          }
-        ]
-      });
-
-      if (!exam) {
-        return res.status(HTTP_STATUS.NOT_FOUND).json(
-          HelperUtils.errorResponse(MESSAGES.EXAM_NOT_FOUND)
+      const exam = await ExamService.getExamById(req.params.id);
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse('Thành công', exam));
+    } catch (error) {
+      if (error.type) {
+        return res.status(TYPE_TO_STATUS[error.type] || HTTP_STATUS.BAD_REQUEST).json(
+          HelperUtils.errorResponse(error.message)
         );
       }
-
-      res.status(HTTP_STATUS.OK).json(
-        HelperUtils.successResponse('Thành công', exam)
-      );
-    } catch (error) {
       Logger.error('Get exam by id error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
-      );
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
     }
   }
 
@@ -113,41 +61,16 @@ class ExamController {
    */
   static async createExam(req, res) {
     try {
-      const { title, description, duration, questions } = req.body;
-
-      // Tạo exam
-      const exam = await Exam.create({
-        title,
-        description,
-        duration,
-        teacherId: req.user.id,
-        totalQuestions: questions.length
-      });
-
-      // Tạo questions
-      const questionData = questions.map((q, index) => ({
-        examId: exam.id,
-        question: q.question,
-        optionA: q.optionA,
-        optionB: q.optionB,
-        optionC: q.optionC,
-        optionD: q.optionD,
-        correctAnswer: q.correctAnswer,
-        order: index + 1
-      }));
-
-      await Question.bulkCreate(questionData);
-
-      Logger.info(`Exam created: ${exam.id} by teacher ${req.user.id}`);
-
-      res.status(HTTP_STATUS.CREATED).json(
-        HelperUtils.successResponse(MESSAGES.EXAM_CREATED, { examId: exam.id })
-      );
+      const data = await ExamService.createExam(req.body, req.user.id);
+      res.status(HTTP_STATUS.CREATED).json(HelperUtils.successResponse(MESSAGES.EXAM_CREATED, data));
     } catch (error) {
+      if (error.type) {
+        return res.status(TYPE_TO_STATUS[error.type] || HTTP_STATUS.BAD_REQUEST).json(
+          HelperUtils.errorResponse(error.message)
+        );
+      }
       Logger.error('Create exam error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
-      );
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
     }
   }
 
@@ -157,35 +80,16 @@ class ExamController {
    */
   static async updateExam(req, res) {
     try {
-      const { id } = req.params;
-      const { title, description, duration } = req.body;
-
-      const exam = await Exam.findByPk(id);
-
-      if (!exam) {
-        return res.status(HTTP_STATUS.NOT_FOUND).json(
-          HelperUtils.errorResponse(MESSAGES.EXAM_NOT_FOUND)
-        );
-      }
-
-      // Kiểm tra quyền sở hữu
-      if (exam.teacherId !== req.user.id && req.user.role !== 'admin') {
-        return res.status(HTTP_STATUS.FORBIDDEN).json(
-          HelperUtils.errorResponse(MESSAGES.FORBIDDEN)
-        );
-      }
-
-      // Cập nhật
-      await exam.update({ title, description, duration });
-
-      res.status(HTTP_STATUS.OK).json(
-        HelperUtils.successResponse(MESSAGES.EXAM_UPDATED)
-      );
+      await ExamService.updateExam(req.params.id, req.body, req.user);
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse(MESSAGES.EXAM_UPDATED));
     } catch (error) {
+      if (error.type) {
+        return res.status(TYPE_TO_STATUS[error.type] || HTTP_STATUS.BAD_REQUEST).json(
+          HelperUtils.errorResponse(error.message)
+        );
+      }
       Logger.error('Update exam error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
-      );
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
     }
   }
 
@@ -195,37 +99,19 @@ class ExamController {
    */
   static async deleteExam(req, res) {
     try {
-      const { id } = req.params;
-
-      const exam = await Exam.findByPk(id);
-
-      if (!exam) {
-        return res.status(HTTP_STATUS.NOT_FOUND).json(
-          HelperUtils.errorResponse(MESSAGES.EXAM_NOT_FOUND)
-        );
-      }
-
-      // Kiểm tra quyền sở hữu
-      if (exam.teacherId !== req.user.id && req.user.role !== 'admin') {
-        return res.status(HTTP_STATUS.FORBIDDEN).json(
-          HelperUtils.errorResponse(MESSAGES.FORBIDDEN)
-        );
-      }
-
-      await exam.destroy();
-
-      Logger.info(`Exam deleted: ${id}`);
-
-      res.status(HTTP_STATUS.OK).json(
-        HelperUtils.successResponse(MESSAGES.EXAM_DELETED)
-      );
+      await ExamService.deleteExam(req.params.id, req.user);
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse(MESSAGES.EXAM_DELETED));
     } catch (error) {
+      if (error.type) {
+        return res.status(TYPE_TO_STATUS[error.type] || HTTP_STATUS.BAD_REQUEST).json(
+          HelperUtils.errorResponse(error.message)
+        );
+      }
       Logger.error('Delete exam error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
-      );
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
     }
   }
 }
 
 module.exports = ExamController;
+
