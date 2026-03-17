@@ -82,20 +82,87 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
-// Socket.io - Real-time functionality
-io.on('connection', (socket) => {
-  Logger.info(`User connected: ${socket.id}`);
+// Track students per room: roomCode -> Map(socketId -> studentData)
+const roomStudents = new Map();
 
-  // Join exam room
-  socket.on('join-room', (roomCode) => {
+// Socket.io - Real-time monitoring & exam functionality
+io.on('connection', (socket) => {
+  Logger.info(`Socket connected: ${socket.id}`);
+
+  // --- STUDENT joins exam room ---
+  socket.on('student-join-room', ({ roomCode, studentId, studentName }) => {
     socket.join(roomCode);
-    Logger.info(`User ${socket.id} joined room: ${roomCode}`);
-    io.to(roomCode).emit('user-joined', {
-      message: 'A student has joined the room'
+    socket.roomCode = roomCode;
+    socket.studentId = studentId;
+    socket.studentName = studentName;
+
+    if (!roomStudents.has(roomCode)) roomStudents.set(roomCode, new Map());
+    roomStudents.get(roomCode).set(socket.id, {
+      socketId: socket.id,
+      studentId,
+      studentName: studentName || 'Học sinh',
+      answeredCount: 0,
+      totalQuestions: 0,
+      timeLeft: 0,
+      status: 'in-progress',
+      joinedAt: new Date().toISOString()
+    });
+
+    const students = Array.from(roomStudents.get(roomCode).values());
+    io.to(`monitor-${roomCode}`).emit('room-state', { students });
+    Logger.info(`Student ${studentName} (${studentId}) joined room: ${roomCode}`);
+  });
+
+  // --- TEACHER monitors a room ---
+  socket.on('teacher-monitor', (roomCode) => {
+    socket.join(`monitor-${roomCode}`);
+    const students = roomStudents.get(roomCode);
+    socket.emit('room-state', { students: students ? Array.from(students.values()) : [] });
+    Logger.info(`Teacher monitoring room: ${roomCode}`);
+  });
+
+  // --- Student sends progress update ---
+  socket.on('progress-update', ({ roomCode, answeredCount, totalQuestions, timeLeft }) => {
+    const students = roomStudents.get(roomCode);
+    if (students && students.has(socket.id)) {
+      const s = students.get(socket.id);
+      s.answeredCount = answeredCount;
+      s.totalQuestions = totalQuestions;
+      s.timeLeft = timeLeft;
+      s.lastActivity = new Date().toISOString();
+    }
+    socket.to(`monitor-${roomCode}`).emit('student-progress', {
+      socketId: socket.id,
+      studentId: socket.studentId,
+      answeredCount,
+      totalQuestions,
+      timeLeft
     });
   });
 
-  // Start exam
+  // --- Student submitted exam ---
+  socket.on('student-submitted', ({ roomCode }) => {
+    const students = roomStudents.get(roomCode);
+    if (students && students.has(socket.id)) {
+      students.get(socket.id).status = 'submitted';
+    }
+    const updatedStudents = students ? Array.from(students.values()) : [];
+    io.to(`monitor-${roomCode}`).emit('room-state', { students: updatedStudents });
+    Logger.info(`Student ${socket.studentId} submitted in room: ${roomCode}`);
+  });
+
+  // --- Teacher force-submits all students in room ---
+  socket.on('force-submit-room', (roomCode) => {
+    io.to(roomCode).emit('force-submit', { reason: 'Giáo viên đã kết thúc bài thi' });
+    Logger.info(`Force submit triggered for room: ${roomCode}`);
+  });
+
+  // --- Legacy events (backward compat) ---
+  socket.on('join-room', (roomCode) => {
+    socket.join(roomCode);
+    io.to(roomCode).emit('user-joined', { message: 'A student has joined the room' });
+  });
+
   socket.on('start-exam', (roomCode) => {
     io.to(roomCode).emit('exam-started', {
       message: 'Exam has started',
@@ -103,7 +170,6 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Submit exam
   socket.on('submit-exam', (data) => {
     io.to(data.roomCode).emit('exam-submitted', {
       studentId: socket.id,
@@ -111,9 +177,18 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Disconnect
+  // --- Disconnect cleanup ---
   socket.on('disconnect', () => {
-    Logger.info(`User disconnected: ${socket.id}`);
+    if (socket.roomCode) {
+      const students = roomStudents.get(socket.roomCode);
+      if (students) {
+        students.delete(socket.id);
+        const updatedStudents = Array.from(students.values());
+        io.to(`monitor-${socket.roomCode}`).emit('room-state', { students: updatedStudents });
+        if (students.size === 0) roomStudents.delete(socket.roomCode);
+      }
+    }
+    Logger.info(`Socket disconnected: ${socket.id}`);
   });
 });
 
@@ -128,6 +203,11 @@ const startServer = async () => {
   try {
     // Connect to database
     await connectDB();
+
+    // Sync all models (create tables if not exist, keep existing data)
+    const { sequelize } = require('./config/database');
+    await sequelize.sync({ force: false });
+    console.log('✅ Tất cả tables đã sẵn sàng!');
     
     // Start listening
     server.listen(PORT, () => {

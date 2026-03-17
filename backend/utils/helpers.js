@@ -33,11 +33,25 @@ class HelperUtils {
   }
 
   /**
-   * Calculate exam score
+   * Calculate exam score given student answers and question list
+   * @param {Array} answers - [{questionId, selectedAnswer}]
+   * @param {Array} questions - Question model instances with correctAnswer field
+   * @returns {{ correctAnswers: number, score: number, correctAnswerMap: Object }}
    */
-  static calculateScore(correctAnswers, totalQuestions) {
-    if (totalQuestions === 0) return 0;
-    return Math.round((correctAnswers / totalQuestions) * 10 * 100) / 100;
+  static calculateScore(answers, questions) {
+    if (!questions || questions.length === 0) return { correctAnswers: 0, score: 0, correctAnswerMap: {} };
+    const correctAnswerMap = {};
+    questions.forEach(q => { correctAnswerMap[q.id] = q.correctAnswer; });
+
+    let correctCount = 0;
+    (answers || []).forEach(({ questionId, selectedAnswer }) => {
+      if (correctAnswerMap[questionId] && correctAnswerMap[questionId] === selectedAnswer) {
+        correctCount++;
+      }
+    });
+
+    const score = Math.round((correctCount / questions.length) * 10 * 100) / 100;
+    return { correctAnswers: correctCount, score, correctAnswerMap };
   }
 
   /**

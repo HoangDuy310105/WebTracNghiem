@@ -28,6 +28,18 @@ let currentSocket = null;
 
 // ============== INITIALIZE ==============
 document.addEventListener('DOMContentLoaded', function() {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!token) { window.location.href = '/pages/login.html'; return; }
+    if (user.role && user.role !== 'student') {
+        if (user.role === 'teacher') { window.location.href = '/pages/teacher-dashboard.html'; return; }
+        if (user.role === 'admin') { window.location.href = '/pages/admin/dashboard.html'; return; }
+    }
+
+    // Update sidebar user info
+    if (document.getElementById('sidebarName')) document.getElementById('sidebarName').textContent = user.fullName || 'Học sinh';
+    if (document.getElementById('sidebarAvatar')) document.getElementById('sidebarAvatar').textContent = (user.fullName || 'H').charAt(0).toUpperCase();
+
     loadDashboard();
     setupEventListeners();
     setupLogout();
@@ -46,7 +58,6 @@ function updateClock() {
 
 // ============== SETUP EVENT LISTENERS ==============
 function setupEventListeners() {
-    // Navigation
     document.querySelectorAll('[data-page]').forEach(link => {
         link.addEventListener('click', function(e) {
             e.preventDefault();
@@ -55,116 +66,127 @@ function setupEventListeners() {
         });
     });
 
-    // Join exam form
-    const joinForm = document.getElementById('joinExamForm');
-    if (joinForm) {
-        joinForm.addEventListener('submit', handleJoinExam);
-    }
+    // Wire both join forms
+    ['joinForm', 'joinForm2'].forEach(id => {
+        const f = document.getElementById(id);
+        if (f) f.addEventListener('submit', handleJoinExam);
+    });
+    // Profile form
+    const profileForm = document.getElementById('profileForm');
+    if (profileForm) profileForm.addEventListener('submit', handleUpdateProfile);
 }
 
 // ============== NAVIGATION ==============
 function navigateToPage(page) {
-    // Hide all content sections
-    document.querySelectorAll('[id$="Content"]').forEach(section => {
-        section.classList.add('d-none');
+    // Hide all pages
+    ['dashboard', 'join-exam', 'my-results', 'profile'].forEach(p => {
+        const el = document.getElementById('pg-' + p);
+        if (el) el.style.display = p === page ? '' : 'none';
     });
 
-    // Remove active class from all nav links
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.classList.remove('active');
+    document.querySelectorAll('.nav-item[data-page]').forEach(link => {
+        link.classList.toggle('active', link.getAttribute('data-page') === page);
     });
 
-    // Show selected content
-    const contentElement = document.getElementById(page + 'Content');
-    if (contentElement) {
-        contentElement.classList.remove('d-none');
-    }
+    const titles = { dashboard: 'Trang ch\u1ee7', 'join-exam': 'Tham gia thi', 'my-results': 'K\u1ebft qu\u1ea3 c\u1ee7a t\u00f4i', profile: 'H\u1ed3 s\u01a1 c\u00e1 nh\u00e2n' };
+    const titleEl = document.getElementById('pageTitle');
+    if (titleEl) titleEl.textContent = titles[page] || page;
 
-    // Add active class to clicked link
-    const activeLink = document.querySelector(`[data-page="${page}"]`);
-    if (activeLink) {
-        activeLink.classList.add('active');
-    }
-
-    // Load page content
-    switch (page) {
-        case 'dashboard':
-            loadDashboard();
-            break;
-        case 'join-exam':
-            // TODO: Load join exam page
-            break;
-        case 'my-results':
-            loadMyResults();
-            break;
-        case 'profile':
-            // TODO: Load profile page
-            break;
-    }
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'my-results') loadMyResults();
+    if (page === 'profile') loadProfile();
 }
 
 // ============== LOAD DASHBOARD ==============
 async function loadDashboard() {
-    // TODO: Implement dashboard loading
-    console.log('Loading student dashboard...');
-    
-    // Example implementation:
-    // try {
-    //     const token = localStorage.getItem('token');
-    //     const response = await fetch(`${API_URL}/results`, {
-    //         headers: { 'Authorization': `Bearer ${token}` }
-    //     });
-    //     const data = await response.json();
-    //     
-    //     // Update statistics
-    //     document.getElementById('totalExams').textContent = data.count || 0;
-    //     // Calculate average score
-    //     // Update UI
-    // } catch (error) {
-    //     console.error('Error loading dashboard:', error);
-    // }
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = '/pages/login.html'; return; }
+
+    try {
+        const res = await fetch(`${API_URL}/results/my-results?limit=100`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success) {
+            const results = data.data.results || [];
+            const total = results.length;
+            const avg = total > 0 ? (results.reduce((s, r) => s + parseFloat(r.score), 0) / total).toFixed(1) : '0.0';
+            const best = total > 0 ? Math.max(...results.map(r => parseFloat(r.score))).toFixed(1) : '0.0';
+
+            document.getElementById('stTotal') && (document.getElementById('stTotal').textContent = total);
+            document.getElementById('stAvg') && (document.getElementById('stAvg').textContent = avg);
+            document.getElementById('stBest') && (document.getElementById('stBest').textContent = best);
+
+            renderRecentResults(results.slice(0, 5));
+        }
+    } catch (error) {
+        console.error('Error loading student dashboard:', error);
+    }
+}
+
+function renderRecentResults(results) {
+    const tbody = document.getElementById('recentTable');
+    if (!tbody) return;
+    if (results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:48px;"><div class="empty-state" style="padding:0;"><i class="fas fa-file-alt"></i><h6>Chưa có bài thi nào</h6></div></td></tr>';
+        return;
+    }
+    tbody.innerHTML = results.map(r => {
+        const passed = parseFloat(r.score) >= 5;
+        return `
+            <tr>
+                <td>${r.room && r.room.exam ? r.room.exam.title : 'N/A'}</td>
+                <td>${r.room ? r.room.roomCode : 'N/A'}</td>
+                <td><strong style="color:${passed ? '#6ee7b7' : '#fca5a5'}">${r.score}/10</strong></td>
+                <td><span class="badge badge-${passed ? 'success' : 'danger'}">${passed ? 'Đạt' : 'Chưa đạt'}</span></td>
+                <td>${new Date(r.createdAt).toLocaleDateString('vi-VN')}</td>
+            </tr>`;
+    }).join('');
 }
 
 // ============== JOIN EXAM ==============
 async function handleJoinExam(e) {
     e.preventDefault();
-    
-    const roomCode = document.getElementById('roomCode').value.toUpperCase();
-    
-    if (!roomCode) {
-        alert('Vui lòng nhập mã phòng thi!');
-        return;
+    const roomCode = (
+        document.getElementById('roomCode')?.value ||
+        document.getElementById('roomCode2')?.value || ''
+    ).toUpperCase().trim();
+
+    if (!roomCode || roomCode.length < 4) {
+        showStudentToast('Vui lòng nhập mã phòng hợp lệ!', 'error'); return;
     }
 
-    // TODO: Implement join exam logic
-    console.log('Joining room:', roomCode);
-    
-    // Example implementation:
-    // try {
-    //     showLoading();
-    //     const token = localStorage.getItem('token');
-    //     const response = await fetch(`${API_URL}/rooms/join`, {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'Authorization': `Bearer ${token}`
-    //         },
-    //         body: JSON.stringify({ roomCode })
-    //     });
-    //     
-    //     const data = await response.json();
-    //     hideLoading();
-    //     
-    //     if (data.success) {
-    //         // Redirect to exam taking page
-    //         startExam(data.data);
-    //     } else {
-    //         alert(data.message);
-    //     }
-    // } catch (error) {
-    //     hideLoading();
-    //     console.error('Error joining room:', error);
-    // }
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = '/pages/login.html'; return; }
+
+    try {
+        const res = await fetch(`${API_URL}/rooms/join`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ roomCode })
+        });
+        const data = await res.json();
+        if (data.success) {
+            const room = data.data;
+            window.location.href = `/pages/exam-taking.html?room=${room.roomId}`;
+        } else {
+            showStudentToast(data.message || 'Mã phòng không hợp lệ hoặc phòng chưa mở', 'error');
+        }
+    } catch (error) {
+        console.error('Join room error:', error);
+        showStudentToast('Lỗi kết nối server', 'error');
+    }
+}
+
+function showStudentToast(message, type = 'info') {
+    const stack = document.getElementById('toastStack');
+    if (!stack) { alert(message); return; }
+    const t = document.createElement('div');
+    t.className = `toast toast-${type}`;
+    t.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'info-circle'}"></i><span>${message}</span></div>`;
+    stack.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
 }
 
 // ============== START EXAM ==============
@@ -214,11 +236,66 @@ async function submitExam() {
 
 // ============== LOAD MY RESULTS ==============
 async function loadMyResults() {
-    // TODO: Implement load results
-    console.log('Loading my results...');
-    
-    // Fetch results from API
-    // Display in table
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('allResultsTable');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_URL}/results/my-results?limit=100`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data.results.length > 0) {
+            tbody.innerHTML = data.data.results.map((r, i) => {
+                const passed = parseFloat(r.score) >= 5;
+                return `
+                    <tr>
+                        <td>${i + 1}</td>
+                        <td>${r.room && r.room.exam ? r.room.exam.title : 'N/A'}</td>
+                        <td>${r.room ? r.room.roomCode : 'N/A'}</td>
+                        <td><strong style="color:${passed ? '#6ee7b7' : '#fca5a5'}">${r.score}/10</strong></td>
+                        <td>${r.correctAnswers}/${r.totalQuestions}</td>
+                        <td>${new Date(r.createdAt).toLocaleString('vi-VN')}</td>
+                        <td><span class="badge badge-${passed ? 'success' : 'danger'}">${passed ? 'Đạt' : 'KHÔNG'}</span></td>
+                    </tr>`;
+            }).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:64px;"><div class="empty-state" style="padding:0;"><i class="fas fa-chart-line"></i><h6>Chưa có kết quả</h6><p>Tham gia thi cử để xem kết quả tại đây</p></div></td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading results:', error);
+    }
+}
+
+// ============== UPDATE PROFILE ==============
+async function handleUpdateProfile(e) {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const fullName = document.getElementById('profileFullName')?.value?.trim();
+    const newPassword = document.getElementById('newPassword')?.value;
+
+    const body = { fullName };
+    if (newPassword) body.password = newPassword;
+
+    try {
+        const res = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (data.success) {
+            showStudentToast('Cập nhật hồ sơ thành công!', 'success');
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.fullName = fullName;
+            localStorage.setItem('user', JSON.stringify(user));
+        } else {
+            showStudentToast(data.message || 'Lỗi cập nhật', 'error');
+        }
+    } catch (err) {
+        showStudentToast('Lỗi kết nối server', 'error');
+    }
 }
 
 // ============== SETUP LOGOUT ==============
@@ -232,6 +309,18 @@ function setupLogout() {
             }
         });
     }
+}
+
+// ============== LOAD PROFILE ==============
+function loadProfile() {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const name = user.fullName || 'Học sinh';
+    const email = user.email || '';
+    document.getElementById('profileName') && (document.getElementById('profileName').textContent = name);
+    document.getElementById('profileEmail') && (document.getElementById('profileEmail').textContent = email);
+    document.getElementById('profileFullName') && (document.getElementById('profileFullName').value = name);
+    document.getElementById('profileEmailInput') && (document.getElementById('profileEmailInput').value = email);
+    document.getElementById('profileAv') && (document.getElementById('profileAv').textContent = name.charAt(0).toUpperCase());
 }
 
 // ============== HELPER FUNCTIONS ==============

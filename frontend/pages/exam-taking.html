@@ -318,10 +318,97 @@
         // ===== EXAM LOGIC =====
         let questions = [], answers = {}, currentQ = 0, totalTime = 45 * 60, timeLeft = totalTime, timerInterval;
         let examStartTime = Date.now(), examDone = false;
+        let examSocket = null, examRoomCode = null;
+        let correctAnswerMap = {}; // populated after real-exam submit
+        const AUTH_TOKEN = localStorage.getItem('token');
+        const AUTH_USER = JSON.parse(localStorage.getItem('user') || '{}');
+        const API_BASE = 'http://localhost:5000/api';
 
         // Helper: get params
         const params = new URLSearchParams(location.search);
         const roomId = params.get('room') || 'demo';
+
+        // ===== LOAD EXAM (API or Demo) =====
+        async function loadExam() {
+            if (roomId === 'demo' || !AUTH_TOKEN) { initDemo(); return; }
+            try {
+                const roomRes = await fetch(`${API_BASE}/rooms/${roomId}`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const roomData = await roomRes.json();
+                if (!roomData.success) { showToast('Không tìm thấy phòng thi', 'error'); initDemo(); return; }
+
+                const room = roomData.data;
+                examRoomCode = room.roomCode;
+
+                if (room.status !== 'active' && room.status !== 'pending') {
+                    showToast('Phòng thi đã kết thúc hoặc bị hủy', 'error');
+                    setTimeout(() => { window.location.href = 'student-dashboard.html'; }, 2000);
+                    return;
+                }
+
+                const examRes = await fetch(`${API_BASE}/exams/${room.examId || room.exam?.id}`, {
+                    headers: { 'Authorization': `Bearer ${AUTH_TOKEN}` }
+                });
+                const examData = await examRes.json();
+                if (!examData.success) { showToast('Không tải được đề thi', 'error'); initDemo(); return; }
+
+                const exam = examData.data;
+                questions = (exam.questions || []).map(q => ({
+                    id: q.id,
+                    text: q.question,
+                    options: [q.optionA, q.optionB, q.optionC, q.optionD],
+                    correct: null
+                }));
+
+                if (questions.length === 0) { showToast('Đề thi chưa có câu hỏi', 'error'); initDemo(); return; }
+
+                document.getElementById('examTitle').textContent = exam.title;
+                document.getElementById('examInfo').textContent = `${questions.length} câu • ${exam.duration} phút`;
+                if (document.getElementById('mobileTitleBar')) document.getElementById('mobileTitleBar').textContent = exam.title;
+
+                buildNavGrid();
+                goQuestion(0);
+                startTimer(exam.duration * 60);
+                connectExamSocket();
+            } catch (err) {
+                console.error('Load exam error:', err);
+                showToast('Lỗi kết nối server, dùng chế độ demo', 'warning');
+                initDemo();
+            }
+        }
+
+        // ===== CONNECT SOCKET =====
+        function connectExamSocket() {
+            if (!examRoomCode) return;
+            examSocket = io('http://localhost:5000');
+
+            examSocket.emit('student-join-room', {
+                roomCode: examRoomCode,
+                studentId: AUTH_USER.id,
+                studentName: AUTH_USER.fullName || 'Học sinh'
+            });
+
+            // Listen for force-submit from teacher
+            examSocket.on('force-submit', ({ reason }) => {
+                if (!examDone) {
+                    showToast(reason || 'Giáo viên đã kết thúc bài thi', 'warning');
+                    setTimeout(() => submitExam(), 1500);
+                }
+            });
+
+            // Send progress updates every 5 seconds
+            setInterval(() => {
+                if (!examDone && examRoomCode && examSocket) {
+                    examSocket.emit('progress-update', {
+                        roomCode: examRoomCode,
+                        answeredCount: Object.keys(answers).length,
+                        totalQuestions: questions.length,
+                        timeLeft
+                    });
+                }
+            }, 5000);
+        }
 
         // Init demo questions if no API
         function initDemo() {
@@ -337,7 +424,8 @@
             document.getElementById('mobileTitleBar') && (document.getElementById('mobileTitleBar').textContent = 'Kiểm tra Demo');
             buildNavGrid(); goQuestion(0); startTimer(45 * 60);
         }
-        initDemo();
+
+        loadExam();
 
         function buildNavGrid() {
             const grid = document.getElementById('qNavGrid');
@@ -422,31 +510,71 @@
         }
         function closeConfirmModal() { document.getElementById('confirmModal').classList.remove('open'); }
 
-        function submitExam() {
+        async function submitExam() {
+            if (examDone) return;
             examDone = true;
             clearInterval(timerInterval);
             closeConfirmModal();
-            // Calculate score
+
+            // If real exam, submit to API
+            if (roomId !== 'demo' && AUTH_TOKEN) {
+                try {
+                    const answerArray = questions.map(q => ({
+                        questionId: q.id,
+                        selectedAnswer: answers[q.id] || null
+                    }));
+                    const res = await fetch(`${API_BASE}/results/submit`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${AUTH_TOKEN}` },
+                        body: JSON.stringify({ roomId: parseInt(roomId), answers: answerArray })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const result = data.data;
+                        correctAnswerMap = result.correctAnswerMap || {};
+                        displayResult(result.score, result.correctAnswers, result.totalQuestions);
+                        if (examSocket && examRoomCode) examSocket.emit('student-submitted', { roomCode: examRoomCode });
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Submit to API error:', e);
+                }
+            }
+
+            // Demo mode: calculate locally
             let correct = 0;
             questions.forEach(q => { if (answers[q.id] === q.correct) correct++; });
-            const score = ((correct / questions.length) * 10).toFixed(1);
+            displayResult(((correct / questions.length) * 10), correct, questions.length);
+        }
+
+        function displayResult(score, correct, total) {
+            const wrong = total - correct;
             const elapsed = Math.floor((Date.now() - examStartTime) / 1000);
             const eM = Math.floor(elapsed / 60), eS = elapsed % 60;
+            const scoreVal = typeof score === 'number' ? score.toFixed(1) : score;
 
-            document.getElementById('resultScore').textContent = score;
+            document.getElementById('resultScore').textContent = scoreVal;
             document.getElementById('resCorrect').textContent = correct;
-            document.getElementById('resWrong').textContent = questions.length - correct;
+            document.getElementById('resWrong').textContent = wrong;
             document.getElementById('resTime').textContent = `${String(eM).padStart(2, '0')}:${String(eS).padStart(2, '0')}`;
-            document.getElementById('resultTitle').textContent = parseFloat(score) >= 5 ? '🎉 Hoàn thành!' : '📚 Cần cố gắng thêm!';
-            document.getElementById('resultMsg').textContent = `Điểm số: ${score}/10 • Đúng ${correct}/${questions.length} câu`;
+            document.getElementById('resultTitle').textContent = parseFloat(scoreVal) >= 5 ? '🎉 Hoàn thành!' : '📚 Cần cố gắng thêm!';
+            document.getElementById('resultMsg').textContent = `Điểm số: ${scoreVal}/10 • Đúng ${correct}/${total} câu`;
 
-            // Animate score ring
-            const pct = (correct / questions.length) * 100;
+            const pct = (correct / total) * 100;
             const color = pct >= 70 ? '#6366f1' : pct >= 50 ? '#f59e0b' : '#ef4444';
             document.getElementById('scoreRing').style.background = `conic-gradient(${color} ${pct * 3.6}deg, rgba(255,255,255,0.04) 0deg)`;
             document.getElementById('scoreRing').style.boxShadow = `0 0 48px ${color}60`;
-
             document.getElementById('resultScreen').classList.add('show');
+        }
+
+        function showToast(msg, type = 'info') {
+            const stack = document.getElementById('toastStack');
+            if (!stack) return;
+            const t = document.createElement('div');
+            t.className = `toast toast-${type}`;
+            t.innerHTML = `<div style="display:flex;align-items:center;gap:10px;"><i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'}"></i><span>${msg}</span></div>`;
+            stack.appendChild(t);
+            setTimeout(() => t.remove(), 4000);
         }
 
         function reviewAnswers() {
@@ -455,19 +583,28 @@
             const container = document.getElementById('examArea');
             container.style.cssText = 'max-width:760px;margin:0 auto;padding:40px 28px;';
             questions.forEach((q, i) => {
-                const isCorrect = answers[q.id] === q.correct;
+                // Use correctAnswerMap from API response if available, otherwise fall back to q.correct (demo mode)
+                const correctKey = correctAnswerMap[q.id] || q.correct;
+                const studentAnswer = answers[q.id];
+                const isCorrect = correctKey !== null && correctKey !== undefined
+                    ? studentAnswer === correctKey
+                    : null; // null = unknown (no correct answer available)
                 const div = document.createElement('div');
                 div.style.marginBottom = '20px';
+                const statusLabel = isCorrect === null ? '' : (isCorrect ? '✅ Đúng' : '❌ Sai');
+                const borderColor = isCorrect === null
+                    ? 'rgba(99,102,241,0.3)'
+                    : (isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)');
                 div.innerHTML = `
-            <div class="question-block" style="border-color:${isCorrect ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'};">
-                <div class="q-meta">Câu ${i + 1} ${isCorrect ? '✅ Đúng' : '❌ Sai'}</div>
+            <div class="question-block" style="border-color:${borderColor};">
+                <div class="q-meta">Câu ${i + 1} ${statusLabel}</div>
                 <div class="q-text">${q.text}</div>
                 <div class="q-options">
                     ${q.options.map((opt, j) => {
                     const key = ['A', 'B', 'C', 'D'][j];
                     let cls = 'q-option';
-                    if (key === q.correct) cls += ' correct';
-                    else if (key === answers[q.id]) cls += ' wrong';
+                    if (correctKey && key === correctKey) cls += ' correct';
+                    else if (key === studentAnswer) cls += ' wrong';
                     return `<div class="${cls}"><div class="q-opt-key">${key}</div><span>${opt}</span></div>`;
                 }).join('')}
                 </div>
