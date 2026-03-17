@@ -72,7 +72,7 @@ module.exports = {
 
   // JWT
   JWT: {
-    EXPIRES_IN: '30d',
+    EXPIRES_IN: '7d',
     REFRESH_EXPIRES_IN: '30d'
   },
 
