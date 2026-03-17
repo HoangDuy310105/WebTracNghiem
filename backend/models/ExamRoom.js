@@ -92,7 +92,8 @@ module.exports = (sequelize) => {
     // Room có nhiều Result
     ExamRoom.hasMany(models.Result, {
       foreignKey: 'roomId',
-      as: 'results'
+      as: 'results',
+      onDelete: 'NO ACTION'
     });
   };
 
