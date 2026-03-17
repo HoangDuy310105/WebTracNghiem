@@ -38,16 +38,6 @@ module.exports = (sequelize) => {
       defaultValue: true,
       field: 'is_active'
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'created_at'
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'updated_at'
-    }
   }, {
     tableName: 'users',
     timestamps: true,
