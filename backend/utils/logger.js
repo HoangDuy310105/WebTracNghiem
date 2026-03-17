@@ -40,7 +40,8 @@ class Logger {
       ...meta
     };
 
-    const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}\n`;
+    const errorDetail = meta instanceof Error ? ` | ${meta.message}` : (meta && meta.message ? ` | ${meta.message}` : '');
+    const logMessage = `[${timestamp}] ${level.toUpperCase()}: ${message}${errorDetail}\n`;
     
     // Console log
     if (process.env.NODE_ENV !== 'production') {
