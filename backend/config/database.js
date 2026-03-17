@@ -30,12 +30,9 @@ const connectDB = async () => {
     await sequelize.authenticate();
     console.log('✅ Kết nối SQL Server thành công!');
     
-    // Sync models
-    // process.env.NODE_ENV === 'development'
-    // await sequelize.sync({ force: true });
-    console.log('✅ Database đã đồng bộ!');
-    
-    console.log('⚠️  Đang chạy ở chế độ NO SYNC - cần tạo tables manually');
+    // Tạo tables nếu chưa tồn tại (không xóa data cũ)
+    await sequelize.sync({ force: false });
+    console.log('✅ Database đã đồng bộ! Tất cả tables đã sẵn sàng.');
   } catch (error) {
     console.error('❌ Lỗi kết nối database:', error.message);
     console.error('');
