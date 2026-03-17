@@ -162,18 +162,20 @@
                     <div class="filter-bar">
                         <div class="search-input-wrap input-group">
                             <i class="fas fa-search input-icon"></i>
-                            <input type="text" class="form-input" placeholder="Tìm người dùng...">
+                            <input type="text" class="form-input" placeholder="Tìm người dùng..." id="userSearch">
                         </div>
-                        <select class="form-select" style="width:auto;padding:10px 16px;">
-                            <option>Tất cả vai trò</option>
-                            <option>Học sinh</option>
-                            <option>Giáo viên</option>
+                        <select class="form-select" style="width:auto;padding:10px 16px;" id="userRoleFilter">
+                            <option value="">Tất cả vai trò</option>
+                            <option value="student">Học sinh</option>
+                            <option value="teacher">Giáo viên</option>
+                            <option value="admin">Admin</option>
                         </select>
                         <select class="form-select" style="width:auto;padding:10px 16px;">
                             <option>Tất cả trạng thái</option>
                             <option>Hoạt động</option>
                             <option>Bị khóa</option>
                         </select>
+                        <button class="btn btn-primary btn-sm" onclick="openCreateUserModal()"><i class="fas fa-user-plus"></i> Tạo user mới</button>
                     </div>
                     <div class="card">
                         <div class="card-body p0">
@@ -208,7 +210,7 @@
                     <div class="filter-bar">
                         <div class="search-input-wrap input-group">
                             <i class="fas fa-search input-icon"></i>
-                            <input type="text" class="form-input" placeholder="Tìm đề thi...">
+                            <input type="text" class="form-input" placeholder="Tìm đề thi..." id="examSearchInput">
                         </div>
                     </div>
                     <div class="card">
@@ -304,6 +306,88 @@
     </div>
 
     <div class="toast-stack" id="toastStack"></div>
+
+    <!-- CREATE USER MODAL -->
+    <div class="modal-overlay" id="createUserModal">
+        <div class="modal-box" style="max-width:520px;width:90%;">
+            <div class="modal-head">
+                <div class="modal-title"><i class="fas fa-user-plus" style="color:#ef4444;margin-right:8px;"></i>Tạo người dùng mới</div>
+                <button class="modal-close" onclick="closeCreateUserModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="createUserForm">
+                    <div class="mb-form">
+                        <label class="form-label">Họ và tên <span style="color:#ef4444;">*</span></label>
+                        <input type="text" id="cuFullName" class="form-input" placeholder="Nguyễn Văn A" required>
+                    </div>
+                    <div class="mb-form">
+                        <label class="form-label">Email <span style="color:#ef4444;">*</span></label>
+                        <input type="email" id="cuEmail" class="form-input" placeholder="user@example.com" required>
+                    </div>
+                    <div class="mb-form">
+                        <label class="form-label">Mật khẩu <span style="color:#ef4444;">*</span></label>
+                        <input type="password" id="cuPassword" class="form-input" placeholder="Tối thiểu 6 ký tự" minlength="6" required>
+                    </div>
+                    <div class="mb-form">
+                        <label class="form-label">Vai trò <span style="color:#ef4444;">*</span></label>
+                        <select id="cuRole" class="form-select" required>
+                            <option value="student">Học sinh</option>
+                            <option value="teacher">Giáo viên</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="modal-foot" style="padding:0;border:none;">
+                        <button type="button" class="btn btn-ghost" onclick="closeCreateUserModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Tạo user</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- EDIT USER MODAL -->
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal-box" style="max-width:520px;width:90%;">
+            <div class="modal-head">
+                <div class="modal-title"><i class="fas fa-user-edit" style="color:#ef4444;margin-right:8px;"></i>Chỉnh sửa người dùng</div>
+                <button class="modal-close" onclick="closeEditUserModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <div class="mb-form">
+                        <label class="form-label">Họ và tên</label>
+                        <input type="text" id="euFullName" class="form-input" required>
+                    </div>
+                    <div class="mb-form">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="euEmail" class="form-input" readonly style="opacity:0.5;cursor:not-allowed;">
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="mb-form">
+                        <div>
+                            <label class="form-label">Vai trò</label>
+                            <select id="euRole" class="form-select">
+                                <option value="student">Học sinh</option>
+                                <option value="teacher">Giáo viên</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="form-label">Trạng thái</label>
+                            <select id="euActive" class="form-select">
+                                <option value="1">Hoạt động</option>
+                                <option value="0">Bị khóa</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-foot" style="padding:0;border:none;">
+                        <button type="button" class="btn btn-ghost" onclick="closeEditUserModal()">Hủy</button>
+                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Lưu thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="../../js/admin.js"></script>
     <script>
         function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN'); }
@@ -316,8 +400,12 @@
             pages.forEach(p => { document.getElementById('pg-' + p).style.display = p === name ? '' : 'none'; });
             document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
             document.getElementById('pageTitle').textContent = titles[name] || name;
-            if (name === 'overview') initCharts();
+            if (name === 'overview') { initCharts(); loadDashboard(); }
             if (name === 'stats') initStatsCharts();
+            if (name === 'users') loadUsers();
+            if (name === 'exams') loadExams();
+            if (name === 'rooms') loadRooms();
+            if (name === 'results') loadResults();
         }
         document.querySelectorAll('.nav-item[data-page]').forEach(el => {
             el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });

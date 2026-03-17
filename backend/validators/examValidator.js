@@ -8,7 +8,7 @@ const createExamValidator = [
   body('title')
     .trim()
     .notEmpty().withMessage('Tên đề thi không được để trống')
-    .isLength({ min: 5, max: 200 }).withMessage('Tên đề thi phải từ 5-200 ký tự'),
+    .isLength({ min: 2, max: 200 }).withMessage('Tên đề thi phải từ 2-200 ký tự'),
   
   body('description')
     .optional()
@@ -35,12 +35,12 @@ const createExamValidator = [
     .notEmpty().withMessage('Đáp án B không được để trống'),
   
   body('questions.*.optionC')
-    .trim()
-    .notEmpty().withMessage('Đáp án C không được để trống'),
+    .optional({ checkFalsy: true })
+    .trim(),
   
   body('questions.*.optionD')
-    .trim()
-    .notEmpty().withMessage('Đáp án D không được để trống'),
+    .optional({ checkFalsy: true })
+    .trim(),
   
   body('questions.*.correctAnswer')
     .notEmpty().withMessage('Đáp án đúng không được để trống')

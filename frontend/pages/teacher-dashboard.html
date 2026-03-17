@@ -7,6 +7,7 @@
     <title>Dashboard - Giáo Viên | ExamPro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../css/dark-theme.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -260,21 +261,47 @@
                 <div id="pg-import-excel" style="display:none;">
                     <div class="card">
                         <div class="card-header">
-                            <span class="card-header-title"><i class="fas fa-file-excel text-success"></i> Import câu
-                                hỏi từ Excel</span>
-                            <button class="btn btn-ghost btn-sm"><i class="fas fa-download"></i> Tải template</button>
+                            <span class="card-header-title"><i class="fas fa-file-excel text-success"></i> Import câu hỏi từ Excel</span>
+                            <button type="button" class="btn btn-ghost btn-sm" onclick="downloadTemplate()"><i class="fas fa-download"></i> Tải template</button>
                         </div>
                         <div class="card-body">
-                            <div class="upload-zone" id="dropZone">
-                                <i class="fas fa-cloud-upload-alt"
-                                    style="font-size:3rem;color:var(--primary);margin-bottom:16px;opacity:0.7;"></i>
+                            <!-- Dropzone -->
+                            <div class="upload-zone" id="dropZone" style="cursor:pointer;">
+                                <i class="fas fa-cloud-upload-alt" style="font-size:3rem;color:var(--primary);margin-bottom:16px;opacity:0.7;"></i>
                                 <h5 style="font-weight:700;margin-bottom:8px;">Kéo thả file Excel vào đây</h5>
-                                <p style="color:var(--text-3);font-size:0.88rem;margin-bottom:20px;">Hoặc nhấn để chọn
-                                    file. Hỗ trợ .xlsx, .xls</p>
-                                <button type="button" class="btn btn-primary"><i class="fas fa-folder-open"></i> Chọn
-                                    file</button>
+                                <p style="color:var(--text-3);font-size:0.88rem;margin-bottom:20px;">Hoặc nhấn để chọn file. Hỗ trợ .xlsx, .xls</p>
+                                <button type="button" class="btn btn-primary" onclick="event.stopPropagation(); document.getElementById('excelFile').click()"><i class="fas fa-folder-open"></i> Chọn file</button>
                                 <input type="file" id="excelFile" accept=".xlsx,.xls" style="display:none;">
                             </div>
+
+                            <!-- Preview table (filled by JS) -->
+                            <div id="importPreview"></div>
+
+                            <!-- Form tạo đề thi (ẩn cho đến khi đọc file xong) -->
+                            <form id="importExamForm" style="display:none;margin-top:24px;" onsubmit="submitImportedExam(event)">
+                                <div style="padding:20px;background:var(--card-2,rgba(255,255,255,0.04));border-radius:12px;border:1px solid var(--border);">
+                                    <h6 style="font-weight:700;margin-bottom:16px;color:var(--primary);"><i class="fas fa-edit"></i> Thông tin đề thi</h6>
+                                    <div class="mb-form">
+                                        <label class="form-label">Tên đề thi <span style="color:var(--danger)">*</span></label>
+                                        <input type="text" id="importExamName" class="form-input" placeholder="Vd: Kiểm tra Toán học kỳ 1" required>
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="mb-form">
+                                        <div>
+                                            <label class="form-label">Thời gian làm bài (phút)</label>
+                                            <input type="number" id="importExamDuration" class="form-input" value="45" min="5" max="180">
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Mô tả (tuỳ chọn)</label>
+                                            <input type="text" id="importExamDesc" class="form-input" placeholder="Mô tả ngắn về đề thi">
+                                        </div>
+                                    </div>
+                                    <div style="display:flex;gap:12px;margin-top:8px;">
+                                        <button type="submit" class="btn btn-success"><i class="fas fa-cloud-upload-alt"></i> Tạo đề thi</button>
+                                        <button type="button" class="btn btn-ghost" onclick="cancelImport()"><i class="fas fa-times"></i> Huỷ</button>
+                                    </div>
+                                </div>
+                            </form>
+
                         </div>
                     </div>
                 </div>
@@ -373,16 +400,17 @@
                 <div id="pg-live-monitor" style="display:none;">
                     <div class="card" style="margin-bottom:16px;">
                         <div class="card-header">
-                            <span class="card-header-title"><i class="fas fa-broadcast-tower text-danger"></i> Giám sát
-                                học sinh đang thi</span>
-                            <select class="form-select" style="width:auto;padding:6px 14px;font-size:0.82rem;"
-                                id="monitorRoom">
-                                <option>-- Chọn phòng thi --</option>
-                            </select>
+                            <span class="card-header-title"><i class="fas fa-broadcast-tower text-danger"></i> Giám sát học sinh đang thi</span>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <select class="form-select" style="width:auto;padding:6px 14px;font-size:0.82rem;" id="monitorRoom">
+                                    <option value="">-- Chọn phòng thi --</option>
+                                </select>
+                                <button class="btn btn-ghost btn-sm" onclick="loadLiveMonitor()" title="Làm mới"><i class="fas fa-sync-alt"></i></button>
+                                <button class="btn btn-danger btn-sm" onclick="forceSubmitRoom()" title="Kết thúc bài thi"><i class="fas fa-stop-circle"></i> Kết thúc</button>
+                            </div>
                         </div>
                         <div class="card-body">
-                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"
-                                id="liveGrid">
+                            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;" id="liveGrid">
                                 <div class="empty-state" style="grid-column:1/-1;padding:48px 0;">
                                     <i class="fas fa-wifi"></i>
                                     <h6>Chưa có học sinh online</h6>
@@ -438,6 +466,26 @@
     </div>
 
     <div class="toast-stack" id="toastStack"></div>
+
+    <!-- ROOM RESULTS MODAL -->
+    <div class="modal-overlay" id="roomResultsModal">
+        <div class="modal-box" style="max-width:700px;width:92%;">
+            <div class="modal-head">
+                <div class="modal-title"><i class="fas fa-chart-bar" style="color:var(--primary);margin-right:8px;"></i>Kết quả phòng thi</div>
+                <button class="modal-close" onclick="document.getElementById('roomResultsModal').classList.remove('open')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body p0">
+                <table class="dark-table">
+                    <thead><tr><th>#</th><th>Học sinh</th><th>Email</th><th>Điểm</th><th>Đúng/Tổng</th><th>Nộp lúc</th></tr></thead>
+                    <tbody id="roomResultsBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-foot">
+                <button class="btn btn-ghost" onclick="document.getElementById('roomResultsModal').classList.remove('open')">Dỳng</button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
     <script src="../js/teacher.js"></script>
     <script>
@@ -452,11 +500,13 @@
             document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
             document.getElementById('pageTitle').textContent = titles[name] || name;
 
-            // Trigger data loading based on page
             if (name === 'dashboard') loadDashboard();
             if (name === 'my-exams') loadMyExams();
             if (name === 'my-rooms') loadMyRooms();
             if (name === 'create-room') showCreateRoomForm();
+            if (name === 'live-monitor') loadLiveMonitor();
+            if (name === 'import-excel') initExcelImport();
+            if (name === 'results') loadTeacherResults();
         }
         document.querySelectorAll('.nav-item[data-page]').forEach(el => {
             el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
@@ -498,6 +548,15 @@
         // Preview room code
         function randomCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
         document.getElementById('previewCode').textContent = randomCode();
+
+        // Monitor room change
+        document.getElementById('monitorRoom')?.addEventListener('change', function() {
+            connectMonitorSocket(this.value);
+        });
+
+        // Create exam form submit (delegated to teacher.js)
+        document.getElementById('createExamForm')?.addEventListener('submit', submitCreateExam);
+        // Import exam form handled by teacher.js initExcelImport()
     </script>
 </body>
 

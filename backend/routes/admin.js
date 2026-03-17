@@ -314,4 +314,14 @@ router.delete('/users/:id', AdminController.deleteUser);
  */
 router.patch('/users/:id/toggle-active', AdminController.toggleUserActive);
 
+// ===== EXAM MANAGEMENT (Admin) =====
+router.get('/exams', AdminController.getAdminExams);
+router.delete('/exams/:id', AdminController.deleteAdminExam);
+
+// ===== ROOM MANAGEMENT (Admin) =====
+router.get('/rooms', AdminController.getAdminRooms);
+
+// ===== RESULTS MANAGEMENT (Admin) =====
+router.get('/results', AdminController.getAdminResults);
+
 module.exports = router;

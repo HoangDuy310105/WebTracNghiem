@@ -46,6 +46,20 @@ document.addEventListener('DOMContentLoaded', function() {
     setupLogout();
     updateClock();
     setInterval(updateClock, 1000);
+
+    // Modal form listeners
+    const createUserForm = document.getElementById('createUserForm');
+    if (createUserForm) createUserForm.addEventListener('submit', handleCreateUser);
+    const editUserForm = document.getElementById('editUserForm');
+    if (editUserForm) editUserForm.addEventListener('submit', handleEditUser);
+
+    // Search / filter for users
+    const userSearch = document.getElementById('userSearch');
+    if (userSearch) userSearch.addEventListener('input', debounce(() => loadUsers(), 400));
+    const userRoleFilter = document.getElementById('userRoleFilter');
+    if (userRoleFilter) userRoleFilter.addEventListener('change', () => loadUsers());
+    const examSearch = document.getElementById('examSearchInput');
+    if (examSearch) examSearch.addEventListener('input', debounce(() => loadExams(), 400));
 });
 
 // ============== CLOCK UPDATE ==============
@@ -169,29 +183,24 @@ async function loadDashboard() {
 
 // ============== USER MANAGEMENT ==============
 async function loadUsers() {
-    console.log('Loading users...');
     const token = localStorage.getItem('token');
-    
-    if (!token) {
-        window.location.href = '/pages/login.html';
-        return;
-    }
-    
+    if (!token) { window.location.href = '/pages/login.html'; return; }
+
+    const search = document.getElementById('userSearch')?.value || '';
+    const role = document.getElementById('userRoleFilter')?.value || '';
+    let url = `${API_URL}/admin/users?limit=50`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (role) url += `&role=${role}`;
+
     try {
-        const response = await fetch(`${API_URL}/admin/users`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
+        const response = await fetch(url, {
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
         });
-        
         const data = await response.json();
-        
         if (data.success) {
             renderUsers(data.data.users);
             updateStats(data.data.pagination.total);
         } else {
-            console.error('Failed to load users:', data.message);
             showAlert(data.message, 'error');
         }
     } catch (error) {
@@ -310,9 +319,106 @@ async function toggleUserStatus(userId, newStatus) {
 }
 
 function viewUser(userId) {
-    // TODO: Show user details modal
-    console.log('View user:', userId);
-    showAlert('Chức năng xem chi tiết đang phát triển', 'info');
+    openEditUserModal(userId);
+}
+
+// ============== CREATE USER MODAL ==============
+function openCreateUserModal() {
+    document.getElementById('createUserModal').classList.add('open');
+}
+
+function closeCreateUserModal() {
+    document.getElementById('createUserModal').classList.remove('open');
+    document.getElementById('createUserForm').reset();
+}
+
+async function handleCreateUser(e) {
+    e.preventDefault();
+    const token = localStorage.getItem('token');
+    const fullName = document.getElementById('cuFullName').value.trim();
+    const email = document.getElementById('cuEmail').value.trim();
+    const password = document.getElementById('cuPassword').value;
+    const role = document.getElementById('cuRole').value;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ fullName, email, password, role })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Tạo người dùng thành công!', 'success');
+            closeCreateUserModal();
+            loadUsers();
+        } else {
+            showAlert(data.message || 'Lỗi tạo user', 'error');
+        }
+    } catch (err) {
+        showAlert('Lỗi kết nối server', 'error');
+    }
+}
+
+// ============== EDIT USER MODAL ==============
+let editingUserId = null;
+
+async function openEditUserModal(userId) {
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_URL}/admin/users/${userId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (!data.success) { showAlert('Không tìm thấy người dùng', 'error'); return; }
+
+        const user = data.data;
+        editingUserId = userId;
+        document.getElementById('euFullName').value = user.fullName;
+        document.getElementById('euEmail').value = user.email;
+        document.getElementById('euRole').value = user.role;
+        document.getElementById('euActive').value = user.isActive ? '1' : '0';
+        document.getElementById('editUserModal').classList.add('open');
+    } catch (err) {
+        showAlert('Lỗi kết nối server', 'error');
+    }
+}
+
+function closeEditUserModal() {
+    document.getElementById('editUserModal').classList.remove('open');
+    editingUserId = null;
+}
+
+async function handleEditUser(e) {
+    e.preventDefault();
+    if (!editingUserId) return;
+    const token = localStorage.getItem('token');
+    const fullName = document.getElementById('euFullName').value.trim();
+    const role = document.getElementById('euRole').value;
+    const isActive = document.getElementById('euActive').value === '1';
+
+    try {
+        const res = await fetch(`${API_URL}/admin/users/${editingUserId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ fullName, role, isActive })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Cập nhật thành công!', 'success');
+            closeEditUserModal();
+            loadUsers();
+        } else {
+            showAlert(data.message || 'Lỗi cập nhật', 'error');
+        }
+    } catch (err) {
+        showAlert('Lỗi kết nối server', 'error');
+    }
+}
+
+// Debounce utility
+function debounce(fn, delay) {
+    let t;
+    return function(...args) { clearTimeout(t); t = setTimeout(() => fn.apply(this, args), delay); };
 }
 
 function updateStats(totalUsers) {
@@ -324,34 +430,135 @@ function updateStats(totalUsers) {
 
 // ============== EXAM MANAGEMENT ==============
 async function loadExams() {
-    console.log('Loading exams...');
-    // TODO: Implement load exams
-    showAlert('Chức năng đang phát triển', 'info');
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('examsTable');
+    if (!tbody) return;
+
+    const search = document.getElementById('examSearchInput')?.value || '';
+
+    try {
+        const res = await fetch(`${API_URL}/admin/exams?limit=50&search=${encodeURIComponent(search)}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data.exams.length > 0) {
+            tbody.innerHTML = data.data.exams.map((exam, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td><strong>${exam.title}</strong></td>
+                    <td>${exam.teacher ? exam.teacher.fullName : 'N/A'}</td>
+                    <td>${exam.questions ? exam.questions.length : exam.totalQuestions}</td>
+                    <td>${exam.duration} phút</td>
+                    <td>${new Date(exam.createdAt).toLocaleDateString('vi-VN')}</td>
+                    <td>
+                        <button class="btn-action btn-danger" onclick="deleteAdminExam(${exam.id})" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-file-alt"></i><h6>Chưa có đề thi</h6></div></td></tr>`;
+        }
+    } catch (error) {
+        console.error('Error loading exams:', error);
+        showAlert('Không thể tải danh sách đề thi', 'error');
+    }
 }
 
-async function deleteExam(examId) {
-    if (confirm('Bạn có chắc muốn xóa đề thi này?')) {
-        console.log('Deleting exam:', examId);
-        showAlert('Chức năng đang phát triển', 'info');
+async function deleteAdminExam(examId) {
+    if (!confirm('Bạn có chắc muốn xóa đề thi này? Hành động không thể hoàn tác.')) return;
+    const token = localStorage.getItem('token');
+    try {
+        const res = await fetch(`${API_URL}/admin/exams/${examId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.success) {
+            showAlert('Xóa đề thi thành công!', 'success');
+            loadExams();
+        } else {
+            showAlert(data.message || 'Lỗi xóa đề thi', 'error');
+        }
+    } catch (e) {
+        showAlert('Lỗi kết nối server', 'error');
     }
 }
 
 // ============== ROOM MANAGEMENT ==============
 async function loadRooms() {
-    console.log('Loading rooms...');
-    showAlert('Chức năng đang phát triển', 'info');
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('roomsTable');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/rooms?limit=50`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data.rooms.length > 0) {
+            const statusColors = { active: 'success', pending: 'warning', completed: 'primary', cancelled: 'danger' };
+            tbody.innerHTML = data.data.rooms.map(room => `
+                <tr>
+                    <td><strong>${room.roomCode}</strong></td>
+                    <td>${room.exam ? room.exam.title : 'N/A'}</td>
+                    <td>${room.creator ? room.creator.fullName : 'N/A'}</td>
+                    <td>${new Date(room.startTime).toLocaleString('vi-VN')}</td>
+                    <td>${new Date(room.endTime).toLocaleString('vi-VN')}</td>
+                    <td><span class="badge badge-${statusColors[room.status] || 'secondary'}">${room.status.toUpperCase()}</span></td>
+                    <td>${room.currentParticipants}/${room.maxParticipants}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-door-open"></i><h6>Chưa có phòng thi</h6></div></td></tr>`;
+        }
+    } catch (error) {
+        console.error('Error loading rooms:', error);
+        showAlert('Không thể tải danh sách phòng thi', 'error');
+    }
 }
 
 // ============== RESULTS MANAGEMENT ==============
 async function loadResults() {
-    console.log('Loading results...');
-    showAlert('Chức năng đang phát triển', 'info');
+    const token = localStorage.getItem('token');
+    const tbody = document.getElementById('resultsTable');
+    if (!tbody) return;
+
+    try {
+        const res = await fetch(`${API_URL}/admin/results?limit=50`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+
+        if (data.success && data.data.results.length > 0) {
+            tbody.innerHTML = data.data.results.map((result, i) => `
+                <tr>
+                    <td>${i + 1}</td>
+                    <td>${result.student ? result.student.fullName : 'N/A'}</td>
+                    <td>${result.room && result.room.exam ? result.room.exam.title : 'N/A'}</td>
+                    <td>${result.room ? result.room.roomCode : 'N/A'}</td>
+                    <td><strong style="color:${result.score >= 5 ? '#6ee7b7' : '#fca5a5'}">${result.score}/10</strong></td>
+                    <td>${result.correctAnswers}/${result.totalQuestions}</td>
+                    <td>${new Date(result.createdAt).toLocaleString('vi-VN')}</td>
+                </tr>
+            `).join('');
+        } else {
+            tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><i class="fas fa-chart-bar"></i><h6>Chưa có kết quả</h6></div></td></tr>`;
+        }
+    } catch (error) {
+        console.error('Error loading results:', error);
+        showAlert('Không thể tải kết quả', 'error');
+    }
 }
 
 // ============== STATISTICS ==============
 async function loadStats() {
-    console.log('Loading statistics...');
-    showAlert('Chức năng đang phát triển', 'info');
+    // Charts are already rendered by initStatsCharts() in the HTML inline script
+    // Just ensure overview data is loaded
+    loadDashboard();
 }
 
 // ============== SETUP LOGOUT ==============

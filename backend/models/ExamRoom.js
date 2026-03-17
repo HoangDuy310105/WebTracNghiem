@@ -59,16 +59,6 @@ module.exports = (sequelize) => {
       defaultValue: 0,
       field: 'current_participants'
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'created_at'
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'updated_at'
-    }
   }, {
     tableName: 'exam_rooms',
     timestamps: true,

@@ -64,16 +64,6 @@ module.exports = (sequelize) => {
       defaultValue: DataTypes.NOW,
       field: 'submitted_at'
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'created_at'
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW,
-      field: 'updated_at'
-    }
   }, {
     tableName: 'results',
     timestamps: true,
