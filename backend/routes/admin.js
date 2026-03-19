@@ -314,4 +314,23 @@ router.delete('/users/:id', AdminController.deleteUser);
  */
 router.patch('/users/:id/toggle-active', AdminController.toggleUserActive);
 
+// ===== ADMIN MANAGEMENT ROUTES =====
+/**
+ * @route   GET /api/admin/exams
+ * @desc    Lấy tất cả đề thi (Admin)
+ */
+router.get('/exams', AdminController.getExamsAdmin);
+
+/**
+ * @route   GET /api/admin/rooms
+ * @desc    Lấy tất cả phòng thi (Admin)
+ */
+router.get('/rooms', AdminController.getRoomsAdmin);
+
+/**
+ * @route   GET /api/admin/results
+ * @desc    Lấy tất cả kết quả (Admin)
+ */
+router.get('/results', AdminController.getResultsAdmin);
+
 module.exports = router;

@@ -2,11 +2,12 @@
 // ADMIN CONTROLLER CLASS - QUẢN TRỊ HỆ THỐNG (OOP)
 // =====================================================
 
-const { User, Exam, ExamRoom, Result } = require('../models');
+const { User, Exam, Question, ExamRoom, Result } = require('../models');
 const { HTTP_STATUS, MESSAGES, ROLES } = require('../utils/constants');
 const HelperUtils = require('../utils/helpers');
 const Logger = require('../utils/logger');
 const { Op } = require('sequelize');
+const { sequelize } = require('../config/database');
 
 class AdminController {
   /**
@@ -15,47 +16,71 @@ class AdminController {
    */
   static async getStats(req, res) {
     try {
-      const totalUsers = await User.count();
-      const totalStudents = await User.count({ where: { role: ROLES.STUDENT } });
-      const totalTeachers = await User.count({ where: { role: ROLES.TEACHER } });
+      console.log(`Fetching admin stats for user: ${req.user.email} (Role: ${req.user.role})`);
+      const totalStudents = await User.count({ where: { role: 'student' } });
+      const totalTeachers = await User.count({ where: { role: 'teacher' } });
       const totalExams = await Exam.count();
       const totalRooms = await ExamRoom.count();
       const totalResults = await Result.count();
+      const activeRooms = await ExamRoom.count({ where: { status: 'active' } });
 
-      // Active rooms
-      const activeRooms = await ExamRoom.count({
-        where: { status: 'active' }
-      });
+      console.log('Basic counts fetched:', { totalStudents, totalTeachers, totalExams });
 
-      // Recent activities
+      let dailyActivity = [];
+      let dailyNewStudents = [];
+
+      try {
+        // Assuming 'sequelize' is available in the scope, e.g., imported from '../models' or passed
+        // If sequelize is not imported, this will cause a ReferenceError.
+        // For faithful reproduction, I'm keeping it as provided.
+        const [activity] = await sequelize.query(`
+          SELECT CAST(created_at AS DATE) as day, COUNT(*) as count 
+          FROM results 
+          WHERE created_at >= DATEADD(day, -7, GETDATE())
+          GROUP BY CAST(created_at AS DATE)
+        `);
+        dailyActivity = activity;
+      } catch (qErr) {
+        console.error('Error fetching daily activity:', qErr.message);
+      }
+
+      try {
+        const [newStudents] = await sequelize.query(`
+          SELECT CAST(created_at AS DATE) as day, COUNT(*) as count 
+          FROM users 
+          WHERE role = 'student' AND created_at >= DATEADD(day, -7, GETDATE())
+          GROUP BY CAST(created_at AS DATE)
+        `);
+        dailyNewStudents = newStudents;
+      } catch (qErr) {
+        console.error('Error fetching daily new students:', qErr.message);
+      }
+
+      const totalUsers = await User.count();
+      const stats = {
+        totalUsers,
+        totalStudents,
+        totalTeachers,
+        totalExams,
+        totalRooms,
+        totalResults,
+        activeRooms,
+        dailyActivity,
+        dailyNewStudents
+      };
+
       const recentResults = await Result.findAll({
         limit: 5,
+        order: [['createdAt', 'DESC']],
         include: [
-          {
-            model: User,
-            as: 'student',
-            attributes: ['fullName', 'email']
-          },
-          {
-            model: ExamRoom,
-            as: 'room',
-            include: [{ model: Exam, as: 'exam', attributes: ['title'] }]
-          }
-        ],
-        order: [['createdAt', 'DESC']]
+          { model: User, as: 'student', attributes: ['fullName'] },
+          { model: ExamRoom, as: 'room', include: [{ model: Exam, as: 'exam', attributes: ['title'] }] }
+        ]
       });
 
       res.status(HTTP_STATUS.OK).json(
         HelperUtils.successResponse('Thành công', {
-          stats: {
-            totalUsers,
-            totalStudents,
-            totalTeachers,
-            totalExams,
-            totalRooms,
-            totalResults,
-            activeRooms
-          },
+          stats,
           recentResults
         })
       );
@@ -317,6 +342,75 @@ class AdminController {
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
         HelperUtils.errorResponse(MESSAGES.ERROR)
       );
+    }
+  }
+
+  /**
+   * Lấy tất cả đề thi (Admin)
+   * GET /api/admin/exams
+   */
+  static async getExamsAdmin(req, res) {
+    try {
+      const exams = await Exam.findAll({
+        include: [
+          { model: User, as: 'teacher', attributes: ['fullName'] },
+          { model: Question, as: 'questions', attributes: ['id'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      // Transform to include questionsCount
+      const result = exams.map(exam => ({
+        ...exam.toJSON(),
+        questionsCount: exam.questions ? exam.questions.length : 0
+      }));
+
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse('Thành công', result));
+    } catch (error) {
+      Logger.error('Admin get exams error:', error);
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(error.message));
+    }
+  }
+
+  /**
+   * Lấy tất cả phòng thi (Admin)
+   * GET /api/admin/rooms
+   */
+  static async getRoomsAdmin(req, res) {
+    try {
+      const rooms = await ExamRoom.findAll({
+        include: [
+          { model: Exam, as: 'exam', attributes: ['title'] },
+          { model: User, as: 'creator', attributes: ['fullName'] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse('Thành công', rooms));
+    } catch (error) {
+      Logger.error('Admin get rooms error:', error);
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(error.message));
+    }
+  }
+
+  /**
+   * Lấy tất cả kết quả (Admin)
+   * GET /api/admin/results
+   */
+  static async getResultsAdmin(req, res) {
+    try {
+      const results = await Result.findAll({
+        include: [
+          { model: User, as: 'student', attributes: ['fullName'] },
+          { model: ExamRoom, as: 'room', include: [{ model: Exam, as: 'exam', attributes: ['title'] }] }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      res.status(HTTP_STATUS.OK).json(HelperUtils.successResponse('Thành công', results));
+    } catch (error) {
+      Logger.error('Admin get results error:', error);
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(error.message));
     }
   }
 }

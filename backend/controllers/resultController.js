@@ -236,6 +236,46 @@ class ResultController {
   }
 
   /**
+   * Lấy tất cả kết quả từ các phòng của teacher
+   * GET /api/results/teacher/all
+   */
+  static async getAllTeacherResults(req, res) {
+    try {
+      const results = await Result.findAll({
+        include: [
+          {
+            model: User,
+            as: 'student',
+            attributes: ['id', 'fullName', 'email']
+          },
+          {
+            model: ExamRoom,
+            as: 'room',
+            where: { createdBy: req.user.id },
+            include: [
+              {
+                model: Exam,
+                as: 'exam',
+                attributes: ['id', 'title']
+              }
+            ]
+          }
+        ],
+        order: [['createdAt', 'DESC']]
+      });
+
+      res.status(HTTP_STATUS.OK).json(
+        HelperUtils.successResponse('Thành công', results)
+      );
+    } catch (error) {
+      Logger.error('Get all teacher results error:', error);
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
+        HelperUtils.errorResponse(MESSAGES.ERROR)
+      );
+    }
+  }
+
+  /**
    * Xóa kết quả (chỉ admin)
    * DELETE /api/results/:id
    */

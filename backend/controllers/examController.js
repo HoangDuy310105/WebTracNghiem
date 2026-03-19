@@ -115,11 +115,17 @@ class ExamController {
     try {
       const { title, description, duration, questions } = req.body;
 
+      if (!questions || !Array.isArray(questions) || questions.length === 0) {
+          return res.status(HTTP_STATUS.BAD_REQUEST).json(
+              HelperUtils.errorResponse('Đề thi phải có ít nhất một câu hỏi')
+          );
+      }
+
       // Tạo exam
       const exam = await Exam.create({
         title,
         description,
-        duration,
+        duration: parseInt(duration) || 45,
         teacherId: req.user.id,
         totalQuestions: questions.length
       });
@@ -138,7 +144,7 @@ class ExamController {
 
       await Question.bulkCreate(questionData);
 
-      Logger.info(`Exam created: ${exam.id} by teacher ${req.user.id}`);
+      Logger.info(`Exam created: ${exam.id} (${title}) with ${questions.length} questions by teacher ${req.user.id}`);
 
       res.status(HTTP_STATUS.CREATED).json(
         HelperUtils.successResponse(MESSAGES.EXAM_CREATED, { examId: exam.id })
@@ -146,7 +152,7 @@ class ExamController {
     } catch (error) {
       Logger.error('Create exam error:', error);
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
-        HelperUtils.errorResponse(MESSAGES.ERROR)
+        HelperUtils.errorResponse(error.message || MESSAGES.ERROR)
       );
     }
   }
