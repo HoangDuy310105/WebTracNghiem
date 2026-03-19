@@ -23,13 +23,12 @@ CHECKLIST NGƯỜI 2:
 □ 8. Export kết quả (optional)
 */
 
-const API_URL = 'http://localhost:5000/api';
+const TEACHER_API_URL = window.API_URL || '/api';
 
 // ============== INITIALIZE ==============
 document.addEventListener('DOMContentLoaded', function() {
     loadDashboard();
     setupEventListeners();
-    setupLogout();
     updateClock();
     setInterval(updateClock, 1000);
 });
@@ -55,14 +54,16 @@ async function loadDashboard() {
         const token = localStorage.getItem('token');
         if (!token) return;
 
-        // Load summary stats (Simplified for now)
-        const [examsRes, roomsRes] = await Promise.all([
-            fetch(`${API_URL}/exams`, { headers: { 'Authorization': `Bearer ${token}` } }),
-            fetch(`${API_URL}/rooms`, { headers: { 'Authorization': `Bearer ${token}` } })
+        // Load summary stats
+        const [examsRes, roomsRes, resultsRes] = await Promise.all([
+            fetch(`${TEACHER_API_URL}/exams`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${TEACHER_API_URL}/rooms`, { headers: { 'Authorization': `Bearer ${token}` } }),
+            fetch(`${TEACHER_API_URL}/results/teacher/all`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
         const examsData = await examsRes.json();
         const roomsData = await roomsRes.json();
+        const resultsData = await resultsRes.json();
 
         if (examsData.success) {
             document.getElementById('st-exams').textContent = examsData.data.pagination.total;
@@ -70,6 +71,19 @@ async function loadDashboard() {
         }
         if (roomsData.success) {
             document.getElementById('st-rooms').textContent = roomsData.data.pagination.total;
+        }
+        
+        if (resultsData.success) {
+            const results = resultsData.data;
+            document.getElementById('st-students').textContent = results.length;
+            
+            if (results.length > 0) {
+                const totalScore = results.reduce((sum, r) => sum + parseFloat(r.score), 0);
+                const avgScore = totalScore / results.length;
+                document.getElementById('st-avgScore').textContent = avgScore.toFixed(2);
+            } else {
+                document.getElementById('st-avgScore').textContent = "0.0";
+            }
         }
 
     } catch (error) {
@@ -103,7 +117,7 @@ function renderRecentExams(exams) {
 async function loadMyExams() {
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/exams`, {
+        const res = await fetch(`${TEACHER_API_URL}/exams`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -141,16 +155,22 @@ async function showCreateRoomForm() {
     // Reset preview code
     refreshPreviewCode();
 
+    // Function to format Date to YYYY-MM-DDThh:mm in local time
+    const formatLocal = (d) => {
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     // Set default times (Start now, end in 1 hour)
     const now = new Date();
     const future = new Date(now.getTime() + 60 * 60 * 1000);
     
-    document.getElementById('roomStart').value = now.toISOString().slice(0, 16);
-    document.getElementById('roomEnd').value = future.toISOString().slice(0, 16);
+    document.getElementById('roomStart').value = formatLocal(now);
+    document.getElementById('roomEnd').value = formatLocal(future);
 
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/exams`, {
+        const res = await fetch(`${TEACHER_API_URL}/exams`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -185,10 +205,15 @@ function updateEndTime() {
     const selectedOption = examSelect.options[examSelect.selectedIndex];
     const duration = parseInt(selectedOption.getAttribute('data-duration'));
     
+    const formatLocal = (d) => {
+        const pad = (n) => n.toString().padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    };
+
     if (duration) {
         const startTime = new Date(startInput.value);
         const endTime = new Date(startTime.getTime() + duration * 60000);
-        endInput.value = endTime.toISOString().slice(0, 16);
+        endInput.value = formatLocal(endTime);
     }
 }
 
@@ -206,7 +231,7 @@ document.getElementById('createRoomForm')?.addEventListener('submit', async func
 
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${API_URL}/rooms`, {
+        const response = await fetch(`${TEACHER_API_URL}/rooms`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -229,7 +254,12 @@ document.getElementById('createRoomForm')?.addEventListener('submit', async func
                 loadMyRooms();
             }
         } else {
-            alert('Lỗi: ' + (data.message || 'Không thể tạo phòng'));
+            let errorMsg = data.message || 'Không thể tạo phòng';
+            if (data.errors && Array.isArray(data.errors)) {
+                const details = data.errors.map(err => err.message || JSON.stringify(err)).join('\n- ');
+                errorMsg += '\nChi tiết:\n- ' + details;
+            }
+            alert('Lỗi: ' + errorMsg);
         }
     } catch (error) {
         console.error('Create room error:', error);
@@ -241,7 +271,7 @@ document.getElementById('createRoomForm')?.addEventListener('submit', async func
 async function loadMyRooms() {
     try {
         const token = localStorage.getItem('token');
-        const res = await fetch(`${API_URL}/rooms`, {
+        const res = await fetch(`${TEACHER_API_URL}/rooms`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -259,8 +289,10 @@ async function loadMyRooms() {
                     <td><span class="badge badge-${getStatusColor(room.status)}">${room.status.toUpperCase()}</span></td>
                     <td>${room.currentParticipants}/${room.maxParticipants}</td>
                     <td>
-                        <button class="btn btn-ghost btn-sm" onclick="viewRoomResults(${room.id})"><i class="fas fa-eye"></i></button>
-                        <button class="btn btn-ghost btn-sm text-danger"><i class="fas fa-trash"></i></button>
+                        ${room.status === 'pending' ? `<button class="btn btn-success btn-sm" onclick="toggleRoomStatus(${room.id}, 'active')" title="Mở phòng thi"><i class="fas fa-play"></i></button>` : ''}
+                        ${room.status === 'active' ? `<button class="btn btn-warning btn-sm" onclick="toggleRoomStatus(${room.id}, 'completed')" title="Kết thúc phòng thi"><i class="fas fa-stop"></i></button>` : ''}
+                        <button class="btn btn-ghost btn-sm" onclick="viewRoomResults(${room.id})" title="Xem kết quả"><i class="fas fa-eye"></i></button>
+                        <button class="btn btn-ghost btn-sm text-danger" title="Xóa phòng thi"><i class="fas fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -283,25 +315,138 @@ function getStatusColor(status) {
 }
 
 // ============== VIEW RESULTS ==============
-async function viewRoomResults(roomId) {
-    console.log('Viewing results for room:', roomId);
-    // TODO: Implement result viewing page or modal
-}
-
-// ============== SETUP LOGOUT ==============
-function setupLogout() {
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            if (confirm('Bạn có chắc muốn đăng xuất?')) {
-                logout();
-            }
+async function loadResults() {
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${TEACHER_API_URL}/results/teacher/all`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
+        const data = await res.json();
+        
+        const tableBody = document.getElementById('resultsTable');
+        if (!tableBody) return;
+
+        if (data.success && data.data.length > 0) {
+            tableBody.innerHTML = data.data.map((res, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td><strong>${res.student ? res.student.fullName : 'N/A'}</strong><br><small>${res.student ? res.student.email : ''}</small></td>
+                    <td>${res.room && res.room.exam ? res.room.exam.title : 'N/A'}</td>
+                    <td><span class="badge badge-ghost">${res.room ? res.room.roomCode : 'N/A'}</span></td>
+                    <td><span class="text-primary" style="font-weight:700;font-size:1.1rem;">${res.score}</span></td>
+                    <td><span class="badge ${parseFloat(res.score) >= 5 ? 'badge-success' : 'badge-danger'}">${res.correctAnswers}/${res.totalQuestions}</span></td>
+                    <td>${new Date(res.createdAt).toLocaleString('vi-VN')}</td>
+                </tr>
+            `).join('');
+        } else {
+            tableBody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><h6>Chưa có kết quả</h6></div></td></tr>';
+        }
+    } catch (error) {
+        console.error('Error loading results:', error);
     }
 }
 
-function logout() {
-    localStorage.clear();
-    window.location.href = '/index.html';
+// ============== CREATE EXAM ==============
+document.getElementById('createExamForm')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const title = document.getElementById('examName').value;
+    const duration = document.getElementById('examDuration').value;
+    const description = document.getElementById('examDesc').value;
+    
+    const questionContainers = document.querySelectorAll('#questionsContainer > div');
+    if (questionContainers.length === 0) {
+        alert('Vui lòng thêm ít nhất một câu hỏi');
+        return;
+    }
+
+    const questions = [];
+    questionContainers.forEach(container => {
+        questions.push({
+            question: container.querySelector('.q-text').value,
+            optionA: container.querySelector('.ans-a').value,
+            optionB: container.querySelector('.ans-b').value,
+            optionC: container.querySelector('.ans-c').value,
+            optionD: container.querySelector('.ans-d').value,
+            correctAnswer: container.querySelector('.correct-ans').value
+        });
+    });
+
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${TEACHER_API_URL}/exams`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                title,
+                duration,
+                description,
+                questions
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Lưu đề thi thành công!');
+            // Reset form
+            this.reset();
+            document.getElementById('questionsContainer').innerHTML = `
+                <div class="empty-state" style="padding:32px 0;"><i class="fas fa-question-circle"></i><h6>Chưa có câu hỏi</h6><p>Nhấn "Thêm câu hỏi" để bắt đầu</p></div>
+            `;
+            // Switch to my exams
+            if (window.showPage) {
+                showPage('my-exams');
+                loadMyExams();
+            }
+        } else {
+            let errorMsg = data.message || 'Không thể lưu đề thi';
+            if (data.errors && Array.isArray(data.errors)) {
+                const details = data.errors.map(err => err.message || JSON.stringify(err)).join('\n- ');
+                errorMsg += '\nChi tiết:\n- ' + details;
+            }
+            alert('Lỗi: ' + errorMsg);
+        }
+    } catch (error) {
+        console.error('Create exam error:', error);
+        alert('Lỗi kết nối server');
+    }
+});
+
+async function viewRoomResults(roomId) {
+    console.log('Viewing results for room:', roomId);
+    // Switch to results page and maybe filter
+    if (window.showPage) {
+        showPage('results');
+        // TODO: Filter resultsTable by roomId if needed
+    }
 }
+
+window.toggleRoomStatus = async function(roomId, newStatus) {
+    if (!confirm(newStatus === 'active' ? 'Bạn có muốn mở phòng thi này cho học sinh tự do tham gia?' : 'Bạn có muốn KẾT THÚC phòng thi này? Các học sinh đang thi sẽ tự động bị thu bài.')) return;
+    
+    try {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${TEACHER_API_URL}/rooms/${roomId}/status`, {
+            method: 'PATCH',
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        const data = await res.json();
+        if (data.success) {
+            alert('Cập nhật trạng thái thành công!');
+            if (typeof loadMyRooms === 'function') loadMyRooms();
+        } else {
+            alert('Lỗi: ' + (data.message || 'Không thể cập nhật trạng thái'));
+        }
+    } catch(err) {
+        console.error('Update status error:', err);
+        alert('Lỗi kết nối server');
+    }
+};

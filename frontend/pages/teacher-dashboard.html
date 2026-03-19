@@ -437,10 +437,22 @@
         </div>
     </div>
 
-    <div class="toast-stack" id="toastStack"></div>
     <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"></script>
+    <script src="../js/auth.js"></script>
     <script src="../js/teacher.js"></script>
     <script>
+        // Phân quyền: Chỉ cho phép Giáo viên hoặc Admin
+        if (typeof checkPageRole === 'function') {
+            checkPageRole('teacher');
+        }
+
+        // Cập nhật thông tin User trên sidebar
+        const user = getUser();
+        if (user) {
+            document.getElementById('sidebarName').textContent = user.fullName;
+            document.getElementById('sidebarAvatar').textContent = user.fullName.charAt(0).toUpperCase();
+        }
+
         function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN'); }
         tick(); setInterval(tick, 1000);
 
@@ -457,6 +469,7 @@
             if (name === 'my-exams') loadMyExams();
             if (name === 'my-rooms') loadMyRooms();
             if (name === 'create-room') showCreateRoomForm();
+            if (name === 'results') loadResults();
         }
         document.querySelectorAll('.nav-item[data-page]').forEach(el => {
             el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
