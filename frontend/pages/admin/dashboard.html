@@ -304,76 +304,17 @@
     </div>
 
     <div class="toast-stack" id="toastStack"></div>
-    <script src="../../js/admin.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/admin.js"></script>
     <script>
-        function tick() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('vi-VN'); }
-        tick(); setInterval(tick, 1000);
-
-        const pages = ['overview', 'stats', 'users', 'exams', 'rooms', 'results'];
-        const titles = { overview: 'Dashboard', stats: 'Thống kê hệ thống', users: 'Quản lý người dùng', exams: 'Quản lý đề thi', rooms: 'Quản lý phòng thi', results: 'Kết quả thi' };
-
-        function showPage(name) {
-            pages.forEach(p => { document.getElementById('pg-' + p).style.display = p === name ? '' : 'none'; });
-            document.querySelectorAll('.nav-item[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === name));
-            document.getElementById('pageTitle').textContent = titles[name] || name;
-            if (name === 'overview') initCharts();
-            if (name === 'stats') initStatsCharts();
-        }
-        document.querySelectorAll('.nav-item[data-page]').forEach(el => {
-            el.addEventListener('click', e => { e.preventDefault(); showPage(el.dataset.page); });
-        });
-
-        // Charts
-        const chartCfg = {
-            backgroundColor: 'transparent',
-            color: 'rgba(248,250,252,0.6)',
-            gridColor: 'rgba(255,255,255,0.05)',
-            font: { family: 'Inter', size: 11, color: 'rgba(248,250,252,0.5)' },
-        };
-        function initCharts() {
-            const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
-            if (document.getElementById('activityChart')._chart) return;
-            const ac = new Chart(document.getElementById('activityChart'), {
-                type: 'line',
-                data: {
-                    labels: days,
-                    datasets: [
-                        { label: 'Lượt thi', data: [12, 24, 18, 32, 28, 45, 38], borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#6366f1' },
-                        { label: 'Học sinh mới', data: [3, 6, 4, 8, 5, 12, 9], borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#10b981' },
-                    ]
-                },
-                options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: chartCfg.gridColor }, ticks: { color: 'rgba(248,250,252,0.4)', font: { family: 'Inter', size: 10 } } }, y: { grid: { color: chartCfg.gridColor }, ticks: { color: 'rgba(248,250,252,0.4)', font: { family: 'Inter', size: 10 } } } } }
-            });
-            document.getElementById('activityChart')._chart = ac;
-
-            const rc = new Chart(document.getElementById('roleChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Học sinh', 'Giáo viên', 'Admin'],
-                    datasets: [{ data: [75, 22, 3], backgroundColor: ['rgba(99,102,241,0.8)', 'rgba(16,185,129,0.8)', 'rgba(239,68,68,0.8)'], borderColor: 'transparent', hoverOffset: 4 }]
-                },
-                options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 }, padding: 16 } } } }
-            });
-            document.getElementById('roleChart')._chart = rc;
-        }
-
-        function initStatsCharts() {
-            const months = ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'];
-            if (!document.getElementById('scoreChart')._chart) {
-                const sc = new Chart(document.getElementById('scoreChart'), {
-                    type: 'bar',
-                    data: { labels: months, datasets: [{ label: 'Điểm TB', data: [7.2, 6.8, 7.5, 8.1, 7.9, 7.3, 8.4, 7.8, 8.0, 8.2, 7.6, 8.5], backgroundColor: 'rgba(99,102,241,0.6)', borderRadius: 6, borderSkipped: false }] },
-                    options: { responsive: true, plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } }, min: 0, max: 10 } } }
-                });
-                document.getElementById('scoreChart')._chart = sc;
-                const tc = new Chart(document.getElementById('teacherChart'), {
-                    type: 'bar', data: { labels: ['GV1', 'GV2', 'GV3', 'GV4', 'GV5'], datasets: [{ label: 'Số đề', data: [12, 8, 15, 6, 10], backgroundColor: 'rgba(16,185,129,0.6)', borderRadius: 6, borderSkipped: false }] },
-                    options: { responsive: true, indexAxis: 'y', plugins: { legend: { labels: { color: 'rgba(248,250,252,0.6)', font: { family: 'Inter', size: 11 } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(248,250,252,0.4)', font: { size: 10 } } } } }
-                });
-                document.getElementById('teacherChart')._chart = tc;
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof getUser === 'function') {
+                var user = getUser();
+                if (user && document.getElementById('sidebarName')) {
+                    document.getElementById('sidebarName').textContent = user.fullName;
+                }
             }
-        }
-        initCharts();
+        });
     </script>
 </body>
 

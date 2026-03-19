@@ -5,7 +5,9 @@
 // 📝 Mô tả: Xử lý đăng ký, đăng nhập, lưu token, logout
 // =====================================================
 
-const API_URL = 'http://localhost:5000/api';
+// Set global API URL
+window.API_URL = '/api';
+const API_URL = window.API_URL;
 
 // ============== UTILITY FUNCTIONS ==============
 
@@ -212,20 +214,34 @@ function logout() {
     window.location.href = '/index.html';
 }
 
-// ============== DASHBOARD PROTECTION ==============
-
-// Protect dashboard pages
-if (window.location.pathname.includes('dashboard')) {
+// Protect dashboard pages by specific role
+function checkPageRole(allowedRole) {
     if (!isAuthenticated()) {
         window.location.href = '/pages/login.html';
-    } else {
-        const user = getUser();
-        const userNameElement = document.getElementById('userName');
-        if (userNameElement) {
-            userNameElement.textContent = user.fullName;
-        }
+        return false;
     }
+    const user = getUser();
+    if (user.role !== allowedRole && user.role !== 'admin') {
+        // Redirect to their own dashboard if they try to access another one
+        redirectToDashboard(user.role);
+        return false;
+    }
+    return true;
 }
+
+// Global Logout Listener for any element with id="logoutBtn"
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            console.log('Logout initiated at:', new Date().toISOString());
+            e.preventDefault();
+            if (confirm('Bạn có chắc muốn đăng xuất?')) {
+                logout();
+            }
+        });
+    }
+});
 
 // ============== EXPORT FUNCTIONS ==============
 if (typeof module !== 'undefined' && module.exports) {
