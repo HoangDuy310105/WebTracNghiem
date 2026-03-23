@@ -23,7 +23,7 @@ CHECKLIST NGƯỜI 1:
 */
 
 // Get API URL from auth.js
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.API_URL || '/api';
 let currentSocket = null;
 
 // ============== INITIALIZE ==============

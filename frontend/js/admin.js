@@ -21,7 +21,7 @@ CHECKLIST NGƯỜI 3:
 □ 6. System health monitoring
 */
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.API_URL || '/api';
 
 // ============== INITIALIZE ==============
 document.addEventListener('DOMContentLoaded', function() {
@@ -293,10 +293,10 @@ async function deleteUser(userId) {
 
 async function toggleUserStatus(userId, newStatus) {
     const token = localStorage.getItem('token');
-    
+
     try {
-        const response = await fetch(`${API_URL}/admin/users/${userId}`, {
-            method: 'PUT',
+        const response = await fetch(`${API_URL}/admin/users/${userId}/toggle-active`, {
+            method: 'PATCH',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
