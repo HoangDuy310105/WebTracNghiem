@@ -14,8 +14,10 @@ class AuthMiddleware {
     try {
       // Lấy token từ header
       const authHeader = req.headers.authorization;
+      console.log(`Auth attempt: ${req.method} ${req.path} - Header present: ${!!authHeader}`);
       
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        console.log('Auth failed: Missing or invalid header:', authHeader);
         return res.status(HTTP_STATUS.UNAUTHORIZED).json(
           HelperUtils.errorResponse(MESSAGES.UNAUTHORIZED)
         );
@@ -24,7 +26,9 @@ class AuthMiddleware {
       const token = authHeader.split(' ')[1];
 
       // Verify token
+      console.log('Verifying token:', token.substring(0, 10) + '...');
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('Token verified for user:', decoded.email);
       
       // Gắn user info vào request
       req.user = {
