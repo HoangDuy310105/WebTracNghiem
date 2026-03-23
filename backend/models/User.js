@@ -54,7 +54,7 @@ module.exports = (sequelize) => {
 
     // Teacher có nhiều Room
     User.hasMany(models.ExamRoom, {
-      foreignKey: 'teacherId',
+      foreignKey: 'createdBy',
       as: 'rooms'
     });
 

@@ -62,6 +62,17 @@ router.get(
 );
 
 /**
+ * @route   GET /api/results/teacher/all
+ * @desc    Lấy tất cả kết quả từ các phòng của teacher
+ * @access  Teacher, Admin
+ */
+router.get(
+  '/teacher/all',
+  AuthMiddleware.authorize(ROLES.TEACHER, ROLES.ADMIN),
+  ResultController.getAllTeacherResults
+);
+
+/**
  * @route   DELETE /api/results/:id
  * @desc    Xóa kết quả
  * @access  Admin only

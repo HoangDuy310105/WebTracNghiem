@@ -23,7 +23,7 @@ CHECKLIST NGƯỜI 2:
 □ 8. Export kết quả (optional)
 */
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = window.API_URL || '/api';
 
 // ============== INITIALIZE ==============
 document.addEventListener('DOMContentLoaded', function() {

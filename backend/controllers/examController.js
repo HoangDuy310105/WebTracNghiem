@@ -70,7 +70,9 @@ class ExamController {
         );
       }
       Logger.error('Create exam error:', error);
-      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(HelperUtils.errorResponse(MESSAGES.ERROR));
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json(
+        HelperUtils.errorResponse(error.message || MESSAGES.ERROR)
+      );
     }
   }
 
