@@ -1,0 +1,20 @@
+{
+    "server": {
+        "port": 5000,
+        "env": "development"
+    },
+    "database": {
+        "host": "localhost\\SQLEXPRESS",
+        "port": 1433,
+        "name": "WebTracNghiem",
+        "username": "sa",
+        "password": "123"
+    },
+    "jwt": {
+        "secret": "your_jwt_secret_key_here_change_in_production",
+        "expire": "7d"
+    },
+    "cache": {
+        "ttl": 3600
+    }
+}
